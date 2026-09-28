@@ -1,0 +1,18 @@
+node_modules/
+dist/
+dev-dist/
+*.tsbuildinfo
+*.log
+
+# Env: hanya .env.example yang di-commit
+.env*
+!.env.example
+
+# Dokumen untuk AI agent / lokal, tidak masuk GitHub
+AGENTS.md
+CLAUDE.md
+DESIGN.md
+.claude/
+
+.DS_Store
+Thumbs.db
