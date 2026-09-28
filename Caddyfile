@@ -1,0 +1,14 @@
+# DOMAIN diisi dari .env di root, contoh: namaapp.duckdns.org
+{$DOMAIN} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy be:3000
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

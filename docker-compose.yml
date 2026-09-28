@@ -1,0 +1,35 @@
+# Jalankan dari root repo:
+#   pnpm --filter @myrep/fe build
+#   docker compose up -d --build   (.env di root dibaca otomatis)
+services:
+  be:
+    build:
+      context: .
+      dockerfile: BE/Dockerfile
+    env_file: .env
+    environment:
+      PORT: 3000
+    expose:
+      - "3000"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on:
+      - be
+    environment:
+      DOMAIN: ${DOMAIN:?isi DOMAIN di .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./FE/dist:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
