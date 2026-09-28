@@ -1,0 +1,12 @@
+{
+  "name": "myrep",
+  "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @myrep/be db:generate",
+    "db:migrate": "pnpm --filter @myrep/be db:migrate"
+  }
+}

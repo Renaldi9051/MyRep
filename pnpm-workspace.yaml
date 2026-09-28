@@ -1,0 +1,6 @@
+packages:
+  - FE
+  - BE
+
+onlyBuiltDependencies:
+  - esbuild
