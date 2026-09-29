@@ -15,7 +15,9 @@ FROM base AS runtime
 ENV NODE_ENV=production
 RUN pnpm install --frozen-lockfile --prod --filter @myrep/be
 COPY --from=build /app/BE/dist BE/dist
+COPY BE/drizzle BE/drizzle
 WORKDIR /app/BE
 EXPOSE 3000
 USER node
-CMD ["node", "dist/index.js"]
+# Migrasi dan seed latihan bawaan aman diulang, jadi dijalankan setiap container start
+CMD ["sh", "-c", "node dist/db/migrate.js && node dist/db/seed.js && exec node dist/index.js"]
