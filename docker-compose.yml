@@ -9,6 +9,8 @@ services:
     env_file: .env
     environment:
       PORT: 3000
+      # Menimpa BETTER_AUTH_URL lokal (localhost) di .env: di server selalu https://DOMAIN
+      BETTER_AUTH_URL: https://${DOMAIN:?isi DOMAIN di .env}
     expose:
       - "3000"
     restart: unless-stopped
