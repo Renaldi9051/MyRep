@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import type { LocalExercise, LocalSet, WorkoutSet } from '../db/types';
+import type { LocalExercise, WorkoutSet } from '../db/types';
 import { addSet, changeExerciseInSession } from '../features/workout/actions';
 import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
 import { haptic, useWakeLock } from '../lib/device';
@@ -10,7 +10,6 @@ import { AppHeader } from './AppHeader';
 import { ExerciseEditSheet } from './ExerciseEditSheet';
 import { ExercisePickerSheet } from './ExercisePickerSheet';
 import { SaveConfirmSheet } from './SaveConfirmSheet';
-import { SetEditSheet } from './SetEditSheet';
 import { SetRows } from './SetRows';
 import { Stepper } from './Stepper';
 import { useToast } from './Toast';
@@ -33,7 +32,6 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
 
   // Nilai yang dibekukan saat tombol Simpan ditekan, menunggu konfirmasi
   const [confirming, setConfirming] = useState<SetValues | null>(null);
-  const [editing, setEditing] = useState<{ set: LocalSet; position: number } | null>(null);
   const [picking, setPicking] = useState(false);
   const [editingExercise, setEditingExercise] = useState(false);
   const setCount = useExerciseSetCount(exercise.id) ?? 0;
@@ -127,11 +125,7 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
             canInc={canInc.weight(weight)}
           />
 
-          <SetRows
-            sets={todaySets}
-            running={`${reps} × ${formatNumber(weight)} kg`}
-            onEdit={(set, position) => setEditing({ set, position })}
-          />
+          <SetRows sets={todaySets} running={`${reps} × ${formatNumber(weight)} kg`} />
 
           <button type="button" className="btn btn--primary" disabled={reps === 0} onClick={askSave}>
             Simpan set
@@ -145,16 +139,6 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
           detail={formatSet(confirming)}
           onConfirm={() => void save(confirming)}
           onClose={() => setConfirming(null)}
-        />
-      )}
-      {editing && (
-        <SetEditSheet
-          set={editing.set}
-          position={editing.position}
-          exerciseName={exercise.name}
-          type="beban"
-          onClose={() => setEditing(null)}
-          onSwapped={goTo}
         />
       )}
       {picking && (
