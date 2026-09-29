@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { LocalExercise, WorkoutSet } from '../db/types';
-import { addSet, changeExerciseInSession } from '../features/workout/actions';
+import { addSet } from '../features/workout/actions';
 import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
 import { useStopwatch } from '../features/workout/stopwatch';
 import { haptic, useWakeLock } from '../lib/device';
@@ -9,7 +9,6 @@ import { formatDuration, formatNumber, formatSet, formatSpeed } from '../lib/for
 import { DEFAULT_SPEED, MINUTE, canInc, stepIncline, stepSpeed } from '../lib/steps';
 import { AppHeader } from './AppHeader';
 import { ExerciseEditSheet } from './ExerciseEditSheet';
-import { ExercisePickerSheet } from './ExercisePickerSheet';
 import { SaveConfirmSheet } from './SaveConfirmSheet';
 import { SetRows } from './SetRows';
 import { Stepper } from './Stepper';
@@ -36,7 +35,6 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
 
   // Nilai yang dibekukan saat tombol Simpan ditekan, menunggu konfirmasi
   const [confirming, setConfirming] = useState<SetValues | null>(null);
-  const [picking, setPicking] = useState(false);
   const [editingExercise, setEditingExercise] = useState(false);
   const setCount = useExerciseSetCount(exercise.id) ?? 0;
 
@@ -61,21 +59,12 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
     setSpeedOverride(values.speed_kmh ?? speed);
   };
 
-  const goTo = (target: LocalExercise) => navigate(`/latihan/${target.id}`, { replace: true });
-
-  const swap = async (target: LocalExercise) => {
-    const first = todaySets[0];
-    if (first) await changeExerciseInSession(first.session_id, exercise.id, target.id);
-    goTo(target);
-  };
-
   return (
     <>
       <AppHeader
         label={exercise.name}
         back={{ to: '/latihan', label: 'Kembali ke daftar latihan' }}
         menu={[
-          { label: 'Ganti latihan', onSelect: () => setPicking(true) },
           // Latihan buatan sendiri bisa langsung dibetulkan (mis. salah ketik nama)
           ...(exercise.is_custom ? [{ label: 'Edit latihan ini', onSelect: () => setEditingExercise(true) }] : []),
           ...(endSession.item ? [endSession.item] : []),
@@ -161,15 +150,6 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
           detail={formatSet(confirming)}
           onConfirm={() => void save(confirming)}
           onClose={() => setConfirming(null)}
-        />
-      )}
-      {picking && (
-        <ExercisePickerSheet
-          title={todaySets.length > 0 ? `Pindahkan ${todaySets.length} catatan ke…` : 'Ganti latihan'}
-          onlyType="kardio"
-          excludeId={exercise.id}
-          onPick={(e) => void swap(e)}
-          onClose={() => setPicking(false)}
         />
       )}
       {editingExercise && (
