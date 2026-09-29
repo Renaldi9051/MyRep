@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'MyRep',
-        short_name: 'MyRep',
+        name: 'MyReps',
+        short_name: 'MyReps',
         description: 'Catat latihan gym tanpa mengetik',
         lang: 'id',
         start_url: '/latihan',

@@ -59,7 +59,7 @@ export function LoginPage() {
 
   return (
     <main className="login">
-      <span className="pill-label login__brand">MyRep</span>
+      <span className="pill-label login__brand">MyReps</span>
       <h1 className="login__hello">{mode === 'daftar' ? 'Buat akun' : 'Hai!'}</h1>
 
       {mode === 'awal' ? (

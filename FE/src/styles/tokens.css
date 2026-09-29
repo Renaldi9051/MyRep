@@ -11,7 +11,7 @@
   --line-dashed: #bdbdb8; /* border putus-putus hari yang belum lewat */
   --line-soft: #ecece9; /* track cincin progres, lingkaran dekoratif */
   --grid: #eeeeeb; /* garis grid grafik */
-  --accent: #c8f169; /* lime MyRep, teks di atasnya selalu --ink */
+  --accent: #c8f169; /* lime MyReps, teks di atasnya selalu --ink */
   --on-ink: #ffffff; /* teks dan ikon di atas --ink */
   --backdrop: rgba(17, 17, 17, 0.4); /* tambahan: latar di belakang sheet */
 

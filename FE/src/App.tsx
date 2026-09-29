@@ -14,7 +14,7 @@ import { TambahLatihanPage } from './pages/TambahLatihanPage';
 function Splash() {
   return (
     <div className="splash" aria-label="Memuat">
-      <span className="pill-label">MyRep</span>
+      <span className="pill-label">MyReps</span>
     </div>
   );
 }
