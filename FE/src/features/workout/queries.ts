@@ -127,6 +127,60 @@ export function useDay(date: string): { groups: DayGroup[]; setCount: number } |
   }, [date]);
 }
 
+export type DayRecord = { exercise: LocalExercise; weightKg: number; previousKg: number };
+
+export type DaySummary = {
+  reps: number;
+  volumeKg: number; // jumlah rep × beban dari semua set beban
+  cardioSec: number;
+  durationSec: number; // dari set pertama sampai set terakhir di hari itu
+  records: DayRecord[];
+};
+
+// Ringkasan satu hari di Riwayat. Rekor = beban tertinggi hari itu melebihi beban tertinggi
+// di hari-hari sebelumnya (latihan yang baru pertama kali dicatat tidak dihitung rekor).
+export function useDaySummary(groups: DayGroup[] | undefined, date: string): DaySummary | undefined {
+  return useLiveQuery(async () => {
+    if (!groups) return undefined;
+    const sets = groups.flatMap((g) => g.sets);
+    const summary: DaySummary = { reps: 0, volumeKg: 0, cardioSec: 0, durationSec: 0, records: [] };
+    for (const s of sets) {
+      if (s.duration_sec !== null) summary.cardioSec += s.duration_sec;
+      else {
+        summary.reps += s.reps ?? 0;
+        summary.volumeKg += (s.reps ?? 0) * (s.weight_kg ?? 0);
+      }
+    }
+    const times = sets.map((s) => Date.parse(s.created_at));
+    if (times.length > 1) summary.durationSec = (Math.max(...times) - Math.min(...times)) / 1000;
+
+    const strength = new Map<string, { exercise: LocalExercise; weightKg: number }>();
+    for (const g of groups) {
+      if (g.exercise.type !== 'beban') continue;
+      const max = Math.max(...g.sets.map((s) => s.weight_kg ?? 0));
+      const prev = strength.get(g.exercise.id);
+      if (!prev || max > prev.weightKg) strength.set(g.exercise.id, { exercise: g.exercise, weightKg: max });
+    }
+    for (const { exercise, weightKg } of strength.values()) {
+      if (weightKg <= 0) continue;
+      const history = await db.sets
+        .where('[exercise_id+created_at]')
+        .between([exercise.id, Dexie.minKey], [exercise.id, Dexie.maxKey])
+        .filter(live)
+        .toArray();
+      const sessions = await db.sessions.bulkGet([...new Set(history.map((s) => s.session_id))]);
+      const earlier = new Set(
+        sessions.filter((s) => s !== undefined && live(s) && s.date < date).map((s) => s!.id),
+      );
+      const before = history.filter((s) => earlier.has(s.session_id));
+      if (before.length === 0) continue;
+      const previousKg = Math.max(...before.map((s) => s.weight_kg ?? 0));
+      if (weightKg > previousKg) summary.records.push({ exercise, weightKg, previousKg });
+    }
+    return summary;
+  }, [groups, date]);
+}
+
 // Tanggal yang punya set (titik kecil di kotak tanggal)
 export function useActiveDates(): Set<string> | undefined {
   return useLiveQuery(async () => {
