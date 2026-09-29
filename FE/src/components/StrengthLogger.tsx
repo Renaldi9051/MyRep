@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { LocalExercise, WorkoutSet } from '../db/types';
 import { addSet } from '../features/workout/actions';
+import { useDraft } from '../features/workout/draft';
 import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
 import { haptic, useWakeLock } from '../lib/device';
 import { formatNumber, formatSet } from '../lib/format';
@@ -16,6 +17,9 @@ import { useEndSession } from './useEndSession';
 
 type SetValues = Pick<WorkoutSet, 'reps' | 'weight_kg' | 'duration_sec' | 'incline_pct' | 'speed_kmh'>;
 
+// weight null = belum diubah user
+const EMPTY_DRAFT: { reps: number; weight: number | null } = { reps: 0, weight: null };
+
 // Penghitung rep (DESIGN §6.3, PRD F2 & F3.1). Set berikutnya cukup: +1 beberapa kali, lalu Simpan set.
 export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
   const navigate = useNavigate();
@@ -24,10 +28,13 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
   const endSession = useEndSession();
   const toast = useToast();
 
-  const [reps, setReps] = useState(0);
+  // Rep dan beban yang belum disimpan tetap ada saat layar ditinggal lalu dibuka lagi
+  const [draft, setDraft] = useDraft(exercise.id, EMPTY_DRAFT);
+  const reps = draft.reps;
+  const setReps = (update: (r: number) => number) => setDraft((d) => ({ ...d, reps: update(d.reps) }));
   // F2.4: beban awal = beban set sebelumnya di latihan ini, 0 kalau belum ada
-  const [weightOverride, setWeightOverride] = useState<number | null>(null);
-  const weight = weightOverride ?? lastSet?.weight_kg ?? 0;
+  const weight = draft.weight ?? lastSet?.weight_kg ?? 0;
+  const stepDraftWeight = (dir: 1 | -1) => setDraft((d) => ({ ...d, weight: stepWeight(d.weight ?? weight, dir) }));
 
   // Nilai yang dibekukan saat tombol Simpan ditekan, menunggu konfirmasi
   const [confirming, setConfirming] = useState<SetValues | null>(null);
@@ -48,8 +55,8 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
     const set = await addSet(exercise.id, values);
     haptic(20);
     toast({ message: `Set ${setNumber} tersimpan · ${formatSet(set)}`, durationMs: 3000 });
-    setReps(0);
-    setWeightOverride(values.weight_kg);
+    // Beban tetap sama untuk set berikutnya
+    setDraft({ reps: 0, weight: values.weight_kg });
   };
 
   return (
@@ -107,8 +114,8 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
           <Stepper
             label="Beban"
             value={`${formatNumber(weight)} kg`}
-            onDec={() => setWeightOverride((w) => stepWeight(w ?? weight, -1))}
-            onInc={() => setWeightOverride((w) => stepWeight(w ?? weight, 1))}
+            onDec={() => stepDraftWeight(-1)}
+            onInc={() => stepDraftWeight(1)}
             canDec={weight > 0}
             canInc={canInc.weight(weight)}
           />

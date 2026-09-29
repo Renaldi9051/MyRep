@@ -2,6 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useState, type ReactNod
 import { getSession, signInEmail, signOut, signUpEmail, type AuthUser } from '../../api/auth';
 import { clearLocalData, countPending, getMeta, setMeta } from '../../db';
 import { cancelScheduledSync, setUnauthorizedHandler, syncNow } from '../sync/engine';
+import { clearDrafts } from '../workout/draft';
 import { clearStopwatches } from '../workout/stopwatch';
 
 // Status login disimpan juga di localStorage supaya app tetap bisa dibuka offline
@@ -102,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut();
     await clearLocalData();
     clearStopwatches();
+    clearDrafts();
     becomeGuest();
   }, [becomeGuest]);
 

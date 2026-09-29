@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { LocalExercise, WorkoutSet } from '../db/types';
 import { addSet } from '../features/workout/actions';
+import { useDraft } from '../features/workout/draft';
 import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
 import { useStopwatch } from '../features/workout/stopwatch';
 import { haptic, useWakeLock } from '../lib/device';
@@ -17,6 +18,9 @@ import { useEndSession } from './useEndSession';
 
 type SetValues = Pick<WorkoutSet, 'reps' | 'weight_kg' | 'duration_sec' | 'incline_pct' | 'speed_kmh'>;
 
+// Field yang tidak ada = belum diubah user
+const EMPTY_DRAFT: { incline?: number | null; speed?: number } = {};
+
 // Varian kardio penghitung (DESIGN §6.3, PRD F6): stopwatch Mulai/Stop, koreksi ±1 menit,
 // incline dan speed lewat stepper.
 export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
@@ -27,11 +31,11 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
   const endSession = useEndSession();
   const toast = useToast();
 
-  // F6.3/F6.4: nilai awal = sesi kardio sebelumnya. undefined = belum diubah user.
-  const [inclineOverride, setInclineOverride] = useState<number | null | undefined>(undefined);
-  const [speedOverride, setSpeedOverride] = useState<number | undefined>(undefined);
-  const incline = inclineOverride !== undefined ? inclineOverride : (lastSet?.incline_pct ?? null);
-  const speed = speedOverride ?? lastSet?.speed_kmh ?? DEFAULT_SPEED;
+  // F6.3/F6.4: nilai awal = sesi kardio sebelumnya. Incline/speed yang belum disimpan tetap ada
+  // saat layar ditinggal (waktu disimpan oleh stopwatch).
+  const [draft, setDraft] = useDraft(exercise.id, EMPTY_DRAFT);
+  const incline = draft.incline !== undefined ? draft.incline : (lastSet?.incline_pct ?? null);
+  const speed = draft.speed ?? lastSet?.speed_kmh ?? DEFAULT_SPEED;
 
   // Nilai yang dibekukan saat tombol Simpan ditekan, menunggu konfirmasi
   const [confirming, setConfirming] = useState<SetValues | null>(null);
@@ -55,8 +59,7 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
     haptic(20);
     toast({ message: `Set ${setNumber} tersimpan · ${formatSet(set)}`, durationMs: 3000 });
     stopwatch.reset();
-    setInclineOverride(values.incline_pct);
-    setSpeedOverride(values.speed_kmh ?? speed);
+    setDraft(EMPTY_DRAFT);
   };
 
   return (
@@ -122,16 +125,16 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
           <Stepper
             label="Incline"
             value={incline === null ? 'tanpa' : `${formatNumber(incline)}%`}
-            onDec={() => setInclineOverride((p) => stepIncline(p === undefined ? incline : p, -1))}
-            onInc={() => setInclineOverride((p) => stepIncline(p === undefined ? incline : p, 1))}
+            onDec={() => setDraft((d) => ({ ...d, incline: stepIncline(d.incline !== undefined ? d.incline : incline, -1) }))}
+            onInc={() => setDraft((d) => ({ ...d, incline: stepIncline(d.incline !== undefined ? d.incline : incline, 1) }))}
             canDec={incline !== null}
             canInc={canInc.incline(incline)}
           />
           <Stepper
             label="Speed"
             value={`${formatSpeed(speed)} km/j`}
-            onDec={() => setSpeedOverride((s) => stepSpeed(s ?? speed, -1))}
-            onInc={() => setSpeedOverride((s) => stepSpeed(s ?? speed, 1))}
+            onDec={() => setDraft((d) => ({ ...d, speed: stepSpeed(d.speed ?? speed, -1) }))}
+            onInc={() => setDraft((d) => ({ ...d, speed: stepSpeed(d.speed ?? speed, 1) }))}
             canDec={speed > 0}
             canInc={canInc.speed(speed)}
           />
