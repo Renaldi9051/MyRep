@@ -7,6 +7,7 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "db:generate": "pnpm --filter @myrep/be db:generate",
-    "db:migrate": "pnpm --filter @myrep/be db:migrate"
+    "db:migrate": "pnpm --filter @myrep/be db:migrate",
+    "db:seed": "pnpm --filter @myrep/be db:seed"
   }
 }
