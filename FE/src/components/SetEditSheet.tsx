@@ -1,0 +1,128 @@
+import { useState } from 'react';
+import type { ExerciseType, LocalExercise, LocalSet } from '../db/types';
+import { changeExerciseInSession, deleteSet, updateSet } from '../features/workout/actions';
+import { formatDuration, formatNumber, formatSpeed } from '../lib/format';
+import { canInc, stepDuration, stepIncline, stepSpeed, stepWeight } from '../lib/steps';
+import { ExercisePickerSheet } from './ExercisePickerSheet';
+import { Sheet } from './Sheet';
+import { Stepper } from './Stepper';
+import { useToast } from './Toast';
+
+type Props = {
+  set: LocalSet;
+  position: number;
+  exerciseName: string;
+  type: ExerciseType;
+  onClose: () => void;
+  // Dipanggil setelah semua set latihan ini di sesinya dipindah ke latihan lain
+  onSwapped?: (target: LocalExercise) => void;
+};
+
+// F5: edit rep/beban (atau data kardio), ganti latihan, hapus dengan "Urungkan" 5 detik
+export function SetEditSheet({ set, position, exerciseName, type, onClose, onSwapped }: Props) {
+  const toast = useToast();
+  const [reps, setReps] = useState(set.reps ?? 0);
+  const [weight, setWeight] = useState(set.weight_kg ?? 0);
+  const [duration, setDuration] = useState(set.duration_sec ?? 0);
+  const [incline, setIncline] = useState(set.incline_pct);
+  const [speed, setSpeed] = useState(set.speed_kmh ?? 0);
+  const [picking, setPicking] = useState(false);
+
+  const cardio = type === 'kardio';
+  const valid = cardio ? duration > 0 : reps > 0;
+
+  const save = async () => {
+    await updateSet(
+      set.id,
+      cardio ? { duration_sec: duration, incline_pct: incline, speed_kmh: speed } : { reps, weight_kg: weight },
+    );
+    onClose();
+  };
+
+  const remove = async () => {
+    const undo = await deleteSet(set.id);
+    onClose();
+    toast({ message: `Set ${position} dihapus`, actionLabel: 'Urungkan', onAction: () => void undo() });
+  };
+
+  const swap = async (target: LocalExercise) => {
+    await changeExerciseInSession(set.session_id, set.exercise_id, target.id);
+    setPicking(false);
+    onClose();
+    toast({ message: `Dipindah ke ${target.name}` });
+    onSwapped?.(target);
+  };
+
+  if (picking) {
+    return (
+      <ExercisePickerSheet
+        title={`Ganti ${exerciseName} dengan…`}
+        onlyType={type}
+        excludeId={set.exercise_id}
+        onPick={(e) => void swap(e)}
+        onClose={() => setPicking(false)}
+      />
+    );
+  }
+
+  return (
+    <Sheet title={`${exerciseName} · Set ${position}`} onClose={onClose}>
+      <div className="stack">
+        {cardio ? (
+          <>
+            <Stepper
+              label="Waktu"
+              value={formatDuration(duration)}
+              onDec={() => setDuration((d) => stepDuration(d, -1))}
+              onInc={() => setDuration((d) => stepDuration(d, 1))}
+              canDec={duration > 0}
+            />
+            <Stepper
+              label="Incline"
+              value={incline === null ? 'tanpa' : `${formatNumber(incline)}%`}
+              onDec={() => setIncline((p) => stepIncline(p, -1))}
+              onInc={() => setIncline((p) => stepIncline(p, 1))}
+              canDec={incline !== null}
+              canInc={canInc.incline(incline)}
+            />
+            <Stepper
+              label="Speed"
+              value={`${formatSpeed(speed)} km/j`}
+              onDec={() => setSpeed((s) => stepSpeed(s, -1))}
+              onInc={() => setSpeed((s) => stepSpeed(s, 1))}
+              canDec={speed > 0}
+              canInc={canInc.speed(speed)}
+            />
+          </>
+        ) : (
+          <>
+            <Stepper
+              label="Rep"
+              value={String(reps)}
+              onDec={() => setReps((r) => Math.max(0, r - 1))}
+              onInc={() => setReps((r) => r + 1)}
+              canDec={reps > 0}
+            />
+            <Stepper
+              label="Beban"
+              value={`${formatNumber(weight)} kg`}
+              onDec={() => setWeight((w) => stepWeight(w, -1))}
+              onInc={() => setWeight((w) => stepWeight(w, 1))}
+              canDec={weight > 0}
+              canInc={canInc.weight(weight)}
+            />
+          </>
+        )}
+        <button type="button" className="btn btn--primary" disabled={!valid} onClick={() => void save()}>
+          Simpan
+        </button>
+        <button type="button" className="btn btn--secondary" onClick={() => setPicking(true)}>
+          Ganti latihan
+        </button>
+        <button type="button" className="btn btn--secondary" onClick={() => void remove()}>
+          Hapus set
+        </button>
+      </div>
+    </Sheet>
+  );
+}
