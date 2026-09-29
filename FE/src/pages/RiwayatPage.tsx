@@ -1,4 +1,4 @@
-import { Check, ChevronUp, Trash2 } from 'lucide-react';
+import { Check, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { AppHeader } from '../components/AppHeader';
@@ -8,7 +8,7 @@ import { useToast } from '../components/Toast';
 import type { LocalExercise, LocalSet } from '../db/types';
 import { deleteExerciseInSession } from '../features/workout/actions';
 import { type DayGroup, useActiveDates, useDay } from '../features/workout/queries';
-import { formatDayMonth, formatGroupSummary, formatSetCompact } from '../lib/format';
+import { formatDayMonth, formatGroupSummary, formatSet } from '../lib/format';
 import { muscleLabel } from '../lib/labels';
 import { localDate } from '../lib/time';
 
@@ -90,27 +90,21 @@ export function RiwayatPage() {
                   </button>
                 </li>
                 {open && (
-                  <li className="ex-detail">
-                    <div className="ex-detail__chips">
-                      {g.sets.map((s, i) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          className="set-chip"
-                          aria-label={`Edit set ${i + 1}`}
-                          onClick={() => setEditing({ set: s, position: i + 1, exercise: g.exercise })}
-                        >
-                          {formatSetCompact(s)}
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      className="text-btn"
-                      onClick={() => setEditing({ set: g.sets[0]!, position: 1, exercise: g.exercise })}
-                    >
-                      Edit
-                    </button>
+                  <li className="set-list">
+                    {g.sets.map((s, i) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        className="set-row set-row--tap"
+                        aria-label={`Edit set ${i + 1}: ${formatSet(s)}`}
+                        onClick={() => setEditing({ set: s, position: i + 1, exercise: g.exercise })}
+                      >
+                        <span>
+                          <b>Set {i + 1}</b> · {formatSet(s)}
+                        </span>
+                        <Pencil size={16} strokeWidth={1.75} />
+                      </button>
+                    ))}
                   </li>
                 )}
               </Fragment>
