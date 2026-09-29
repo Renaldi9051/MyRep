@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import type { LocalExercise, LocalSet } from '../db/types';
+import type { LocalExercise, LocalSet, WorkoutSet } from '../db/types';
 import { addSet, changeExerciseInSession } from '../features/workout/actions';
 import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
 import { useStopwatch } from '../features/workout/stopwatch';
@@ -10,10 +10,14 @@ import { DEFAULT_SPEED, MINUTE, canInc, stepIncline, stepSpeed } from '../lib/st
 import { AppHeader } from './AppHeader';
 import { ExerciseEditSheet } from './ExerciseEditSheet';
 import { ExercisePickerSheet } from './ExercisePickerSheet';
+import { SaveConfirmSheet } from './SaveConfirmSheet';
 import { SetEditSheet } from './SetEditSheet';
 import { SetRows } from './SetRows';
 import { Stepper } from './Stepper';
+import { useToast } from './Toast';
 import { useEndSession } from './useEndSession';
+
+type SetValues = Pick<WorkoutSet, 'reps' | 'weight_kg' | 'duration_sec' | 'incline_pct' | 'speed_kmh'>;
 
 // Varian kardio penghitung (DESIGN §6.3, PRD F6): stopwatch Mulai/Stop, koreksi ±1 menit,
 // incline dan speed lewat stepper.
@@ -23,6 +27,7 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
   const todaySets = useTodaySets(exercise.id) ?? [];
   const stopwatch = useStopwatch(exercise.id);
   const endSession = useEndSession();
+  const toast = useToast();
 
   // F6.3/F6.4: nilai awal = sesi kardio sebelumnya. undefined = belum diubah user.
   const [inclineOverride, setInclineOverride] = useState<number | null | undefined>(undefined);
@@ -30,6 +35,8 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
   const incline = inclineOverride !== undefined ? inclineOverride : (lastSet?.incline_pct ?? null);
   const speed = speedOverride ?? lastSet?.speed_kmh ?? DEFAULT_SPEED;
 
+  // Nilai yang dibekukan saat tombol Simpan ditekan, menunggu konfirmasi
+  const [confirming, setConfirming] = useState<SetValues | null>(null);
   const [editing, setEditing] = useState<{ set: LocalSet; position: number } | null>(null);
   const [picking, setPicking] = useState(false);
   const [editingExercise, setEditingExercise] = useState(false);
@@ -37,16 +44,23 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
 
   useWakeLock(true);
 
+  const setNumber = todaySets.length + 1;
   const elapsedSec = Math.floor(stopwatch.elapsedMs / 1000);
   const current = { reps: null, weight_kg: null, duration_sec: elapsedSec, incline_pct: incline, speed_kmh: speed };
 
-  const save = async () => {
+  const askSave = () => {
     if (elapsedSec < 1) return;
-    await addSet(exercise.id, current);
+    setConfirming(current);
+  };
+
+  const save = async (values: SetValues) => {
+    setConfirming(null);
+    const set = await addSet(exercise.id, values);
     haptic(20);
+    toast({ message: `Set ${setNumber} tersimpan · ${formatSet(set)}`, durationMs: 3000 });
     stopwatch.reset();
-    setInclineOverride(incline);
-    setSpeedOverride(speed);
+    setInclineOverride(values.incline_pct);
+    setSpeedOverride(values.speed_kmh ?? speed);
   };
 
   const goTo = (target: LocalExercise) => navigate(`/latihan/${target.id}`, { replace: true });
@@ -72,7 +86,7 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
 
       <main className="screen__body counter">
         <p className="counter__info num">
-          Set {todaySets.length + 1} · {lastSet ? `sesi lalu ${formatSet(lastSet)}` : 'sesi pertama'}
+          Set {setNumber} · {lastSet ? `sesi lalu ${formatSet(lastSet)}` : 'sesi pertama'}
         </p>
 
         <div className="counter__ring-area">
@@ -137,12 +151,20 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
 
           <SetRows sets={todaySets} running={formatSet(current)} onEdit={(set, position) => setEditing({ set, position })} />
 
-          <button type="button" className="btn btn--primary" disabled={elapsedSec < 1} onClick={() => void save()}>
+          <button type="button" className="btn btn--primary" disabled={elapsedSec < 1} onClick={askSave}>
             Simpan
           </button>
         </div>
       </main>
 
+      {confirming && (
+        <SaveConfirmSheet
+          title={`Simpan set ${setNumber}?`}
+          detail={formatSet(confirming)}
+          onConfirm={() => void save(confirming)}
+          onClose={() => setConfirming(null)}
+        />
+      )}
       {editing && (
         <SetEditSheet
           set={editing.set}

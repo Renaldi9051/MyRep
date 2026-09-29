@@ -1085,6 +1085,24 @@ p {
   font-weight: 600;
 }
 
+/* Konfirmasi simpan set */
+.confirm__value {
+  margin: 0;
+  padding: 14px 16px;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-md);
+  font-family: var(--font-number);
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.confirm__note {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import type { LocalExercise, LocalSet } from '../db/types';
+import type { LocalExercise, LocalSet, WorkoutSet } from '../db/types';
 import { addSet, changeExerciseInSession } from '../features/workout/actions';
 import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
 import { haptic, useWakeLock } from '../lib/device';
@@ -9,10 +9,14 @@ import { canInc, stepWeight } from '../lib/steps';
 import { AppHeader } from './AppHeader';
 import { ExerciseEditSheet } from './ExerciseEditSheet';
 import { ExercisePickerSheet } from './ExercisePickerSheet';
+import { SaveConfirmSheet } from './SaveConfirmSheet';
 import { SetEditSheet } from './SetEditSheet';
 import { SetRows } from './SetRows';
 import { Stepper } from './Stepper';
+import { useToast } from './Toast';
 import { useEndSession } from './useEndSession';
+
+type SetValues = Pick<WorkoutSet, 'reps' | 'weight_kg' | 'duration_sec' | 'incline_pct' | 'speed_kmh'>;
 
 // Penghitung rep (DESIGN §6.3, PRD F2 & F3.1). Set berikutnya cukup: +1 beberapa kali, lalu Simpan set.
 export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
@@ -20,12 +24,15 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
   const lastSet = useLastSet(exercise.id);
   const todaySets = useTodaySets(exercise.id) ?? [];
   const endSession = useEndSession();
+  const toast = useToast();
 
   const [reps, setReps] = useState(0);
   // F2.4: beban awal = beban set sebelumnya di latihan ini, 0 kalau belum ada
   const [weightOverride, setWeightOverride] = useState<number | null>(null);
   const weight = weightOverride ?? lastSet?.weight_kg ?? 0;
 
+  // Nilai yang dibekukan saat tombol Simpan ditekan, menunggu konfirmasi
+  const [confirming, setConfirming] = useState<SetValues | null>(null);
   const [editing, setEditing] = useState<{ set: LocalSet; position: number } | null>(null);
   const [picking, setPicking] = useState(false);
   const [editingExercise, setEditingExercise] = useState(false);
@@ -35,12 +42,18 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
 
   const setNumber = todaySets.length + 1;
 
-  const save = async () => {
+  const askSave = () => {
     if (reps === 0) return;
-    await addSet(exercise.id, { reps, weight_kg: weight, duration_sec: null, incline_pct: null, speed_kmh: null });
+    setConfirming({ reps, weight_kg: weight, duration_sec: null, incline_pct: null, speed_kmh: null });
+  };
+
+  const save = async (values: SetValues) => {
+    setConfirming(null);
+    const set = await addSet(exercise.id, values);
     haptic(20);
+    toast({ message: `Set ${setNumber} tersimpan · ${formatSet(set)}`, durationMs: 3000 });
     setReps(0);
-    setWeightOverride(weight);
+    setWeightOverride(values.weight_kg);
   };
 
   const goTo = (target: LocalExercise) => navigate(`/latihan/${target.id}`, { replace: true });
@@ -120,12 +133,20 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
             onEdit={(set, position) => setEditing({ set, position })}
           />
 
-          <button type="button" className="btn btn--primary" disabled={reps === 0} onClick={() => void save()}>
+          <button type="button" className="btn btn--primary" disabled={reps === 0} onClick={askSave}>
             Simpan set
           </button>
         </div>
       </main>
 
+      {confirming && (
+        <SaveConfirmSheet
+          title={`Simpan set ${setNumber}?`}
+          detail={formatSet(confirming)}
+          onConfirm={() => void save(confirming)}
+          onClose={() => setConfirming(null)}
+        />
+      )}
       {editing && (
         <SetEditSheet
           set={editing.set}
