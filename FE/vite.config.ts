@@ -12,17 +12,29 @@ export default defineConfig({
       manifest: {
         name: 'MyRep',
         short_name: 'MyRep',
-        description: 'Pencatat latihan gym',
+        description: 'Catat latihan gym tanpa mengetik',
         lang: 'id',
         start_url: '/latihan',
         display: 'standalone',
-        theme_color: '#111111',
-        background_color: '#111111',
+        theme_color: '#FFFFFF',
+        background_color: '#FFFFFF',
         // TODO: tambah ikon PNG 192 dan 512 setelah desain dipilih
         icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' }],
       },
       workbox: {
         navigateFallbackDenylist: [/^\/api\//],
+        // Font Barlow dari Google Fonts disimpan supaya tampilan tetap sama saat offline
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],
