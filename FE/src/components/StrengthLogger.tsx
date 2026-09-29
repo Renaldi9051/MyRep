@@ -6,6 +6,7 @@ import { useDraft } from '../features/workout/draft';
 import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
 import { haptic, useWakeLock } from '../lib/device';
 import { formatNumber, formatSet } from '../lib/format';
+import { nowIso } from '../lib/time';
 import { canInc, stepWeight } from '../lib/steps';
 import { AppHeader } from './AppHeader';
 import { ExerciseEditSheet } from './ExerciseEditSheet';
@@ -24,7 +25,10 @@ const EMPTY_DRAFT: { reps: number; weight: number | null } = { reps: 0, weight: 
 export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
   const navigate = useNavigate();
   const lastSet = useLastSet(exercise.id);
-  const todaySets = useTodaySets(exercise.id) ?? [];
+  // Set yang sudah disimpan sebelum layar ini dibuka tidak ditampilkan lagi: tiap buka mulai dari Set 1.
+  // Edit set lama lewat Riwayat.
+  const [openedAt] = useState(nowIso);
+  const visitSets = (useTodaySets(exercise.id) ?? []).filter((s) => s.created_at >= openedAt);
   const endSession = useEndSession();
   const toast = useToast();
 
@@ -43,7 +47,7 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
 
   useWakeLock(true);
 
-  const setNumber = todaySets.length + 1;
+  const setNumber = visitSets.length + 1;
 
   const askSave = () => {
     if (reps === 0) return;
@@ -120,7 +124,7 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
             canInc={canInc.weight(weight)}
           />
 
-          <SetRows sets={todaySets} running={`${reps} × ${formatNumber(weight)} kg`} />
+          <SetRows sets={visitSets} running={`${reps} × ${formatNumber(weight)} kg`} />
 
           <button type="button" className="btn btn--primary" disabled={reps === 0} onClick={askSave}>
             Simpan set

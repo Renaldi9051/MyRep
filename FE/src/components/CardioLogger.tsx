@@ -8,6 +8,7 @@ import { useStopwatch } from '../features/workout/stopwatch';
 import { haptic, useWakeLock } from '../lib/device';
 import { formatDuration, formatNumber, formatSet, formatSpeed } from '../lib/format';
 import { DEFAULT_SPEED, MINUTE, canInc, stepIncline, stepSpeed } from '../lib/steps';
+import { nowIso } from '../lib/time';
 import { AppHeader } from './AppHeader';
 import { ExerciseEditSheet } from './ExerciseEditSheet';
 import { SaveConfirmSheet } from './SaveConfirmSheet';
@@ -26,7 +27,10 @@ const EMPTY_DRAFT: { incline?: number | null; speed?: number } = {};
 export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
   const navigate = useNavigate();
   const lastSet = useLastSet(exercise.id);
-  const todaySets = useTodaySets(exercise.id) ?? [];
+  // Catatan yang sudah disimpan sebelum layar ini dibuka tidak ditampilkan lagi: tiap buka mulai dari Set 1.
+  // Edit catatan lama lewat Riwayat.
+  const [openedAt] = useState(nowIso);
+  const visitSets = (useTodaySets(exercise.id) ?? []).filter((s) => s.created_at >= openedAt);
   const stopwatch = useStopwatch(exercise.id);
   const endSession = useEndSession();
   const toast = useToast();
@@ -44,7 +48,7 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
 
   useWakeLock(true);
 
-  const setNumber = todaySets.length + 1;
+  const setNumber = visitSets.length + 1;
   const elapsedSec = Math.floor(stopwatch.elapsedMs / 1000);
   const current = { reps: null, weight_kg: null, duration_sec: elapsedSec, incline_pct: incline, speed_kmh: speed };
 
@@ -139,7 +143,7 @@ export function CardioLogger({ exercise }: { exercise: LocalExercise }) {
             canInc={canInc.speed(speed)}
           />
 
-          <SetRows sets={todaySets} running={formatSet(current)} />
+          <SetRows sets={visitSets} running={formatSet(current)} />
 
           <button type="button" className="btn btn--primary" disabled={elapsedSec < 1} onClick={askSave}>
             Simpan
