@@ -34,6 +34,9 @@ export function formatMinutes(totalSec: number): string {
 // "Selasa, 29 September"
 export const formatDayMonth = (date: string): string => dayMonth.format(parseLocalDate(date));
 
+// "Rabu, 30 September 2026"
+export const formatLongDate = (date: string): string => longDate.format(parseLocalDate(date));
+
 export function formatDateLabel(date: string): string {
   const today = new Date();
   const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
