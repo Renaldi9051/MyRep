@@ -9,5 +9,9 @@
     "db:generate": "pnpm --filter @myrep/be db:generate",
     "db:migrate": "pnpm --filter @myrep/be db:migrate",
     "db:seed": "pnpm --filter @myrep/be db:seed"
+  },
+  "devDependencies": {
+    "@neon/config": "^1.8.2",
+    "@neon/env": "^1.4.7"
   }
 }

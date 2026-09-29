@@ -8,11 +8,16 @@ dev-dist/
 .env*
 !.env.example
 
-# Dokumen untuk AI agent / lokal, tidak masuk GitHub
+# Konteks lokal Neon CLI (org/project/branch yang di-link)
+.neon
+
+# Dokumen dan config lokal untuk AI agent, tidak masuk GitHub
 AGENTS.md
 CLAUDE.md
 DESIGN.md
 .claude/
+.mcp.json
+skills-lock.json
 
 .DS_Store
 Thumbs.db
