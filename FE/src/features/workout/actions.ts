@@ -154,15 +154,22 @@ export async function endSession(sessionId: string): Promise<SessionSummary> {
 
 export class DuplicateExerciseError extends Error {}
 
+const cleanName = (name: string) => name.trim().replace(/\s+/g, ' ');
+
+// Nama latihan unik (tanpa beda huruf besar/kecil) di antara latihan yang masih ada
+async function assertUniqueName(name: string, exceptId?: string): Promise<void> {
+  const lower = name.toLocaleLowerCase('id-ID');
+  const duplicate = await db.exercises
+    .filter((e) => live(e) && e.id !== exceptId && e.name.toLocaleLowerCase('id-ID') === lower)
+    .first();
+  if (duplicate) throw new DuplicateExerciseError(`"${duplicate.name}" sudah ada di daftar`);
+}
+
 // F1.4: latihan custom, langsung bisa dipilih
 export async function addCustomExercise(name: string, group: MuscleGroup): Promise<LocalExercise> {
-  const trimmed = name.trim().replace(/\s+/g, ' ');
+  const trimmed = cleanName(name);
   const exercise = await db.transaction('rw', db.exercises, async () => {
-    const lower = trimmed.toLocaleLowerCase('id-ID');
-    const duplicate = await db.exercises
-      .filter((e) => live(e) && e.name.toLocaleLowerCase('id-ID') === lower)
-      .first();
-    if (duplicate) throw new DuplicateExerciseError(`"${duplicate.name}" sudah ada di daftar`);
+    await assertUniqueName(trimmed);
     const now = nowIso();
     const row: LocalExercise = {
       id: uuid(),
@@ -181,4 +188,38 @@ export async function addCustomExercise(name: string, group: MuscleGroup): Promi
   });
   requestSync();
   return exercise;
+}
+
+// Kelola latihan: ganti nama / kelompok otot latihan buatan sendiri.
+// Tipe (beban/kardio) tidak berubah supaya set yang sudah tercatat tetap cocok.
+export async function updateCustomExercise(id: string, name: string, group: MuscleGroup): Promise<void> {
+  const trimmed = cleanName(name);
+  await db.transaction('rw', db.exercises, async () => {
+    const exercise = await db.exercises.get(id);
+    if (!exercise || !exercise.is_custom) throw new Error('Latihan bawaan tidak bisa diubah');
+    if ((group === 'kardio') !== (exercise.type === 'kardio')) {
+      throw new Error('Kelompok otot tidak cocok dengan tipe latihan');
+    }
+    await assertUniqueName(trimmed, id);
+    await db.exercises.put({ ...exercise, name: trimmed, muscle_group: group, updated_at: nowIso(), pending: 1 });
+  });
+  requestSync();
+}
+
+// Hapus lunak latihan buatan sendiri. Set di riwayat tetap ada. Kembalikan fungsi "Urungkan".
+export async function deleteCustomExercise(id: string): Promise<() => Promise<void>> {
+  await setExerciseDeleted(id, true);
+  return () => setExerciseDeleted(id, false);
+}
+
+async function setExerciseDeleted(id: string, deleted: boolean): Promise<void> {
+  await db.transaction('rw', db.exercises, async () => {
+    const exercise = await db.exercises.get(id);
+    if (!exercise || !exercise.is_custom) throw new Error('Latihan bawaan tidak bisa dihapus');
+    // Saat urungkan, nama bisa saja sudah dipakai latihan lain
+    if (!deleted) await assertUniqueName(exercise.name, id);
+    const now = nowIso();
+    await db.exercises.put({ ...exercise, deleted_at: deleted ? now : null, updated_at: now, pending: 1 });
+  });
+  requestSync();
 }

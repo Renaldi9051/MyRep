@@ -4,6 +4,7 @@ import { useAuth } from './features/auth/useAuth';
 import { useSyncTriggers } from './features/sync/hooks';
 import { AkunPage } from './pages/AkunPage';
 import { CatatPage } from './pages/CatatPage';
+import { KelolaLatihanPage } from './pages/KelolaLatihanPage';
 import { LatihanPage } from './pages/LatihanPage';
 import { LatihanRiwayatPage } from './pages/LatihanRiwayatPage';
 import { LoginPage } from './pages/LoginPage';
@@ -56,6 +57,7 @@ export function App() {
       <Route element={<RequireAuth />}>
         <Route path="/latihan" element={<LatihanPage />} />
         <Route path="/latihan/tambah" element={<TambahLatihanPage />} />
+        <Route path="/latihan/kelola" element={<KelolaLatihanPage />} />
         <Route path="/latihan/:exerciseId" element={<CatatPage />} />
         <Route path="/riwayat" element={<RiwayatPage />} />
         <Route path="/progres" element={<ProgresPage />} />

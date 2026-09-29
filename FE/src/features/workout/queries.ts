@@ -20,6 +20,30 @@ export function useExercises(): LocalExercise[] | undefined {
   });
 }
 
+export function useExerciseSetCount(id: string): number | undefined {
+  return useLiveQuery(
+    () =>
+      db.sets
+        .where('[exercise_id+created_at]')
+        .between([id, Dexie.minKey], [id, Dexie.maxKey])
+        .filter(live)
+        .count(),
+    [id],
+  );
+}
+
+// Kelola latihan: latihan buatan sendiri + jumlah set yang memakainya
+export function useCustomExercises(): { exercise: LocalExercise; setCount: number }[] | undefined {
+  return useLiveQuery(async () => {
+    const custom = (await db.exercises.filter((e) => live(e) && e.is_custom).toArray()).sort((a, b) =>
+      a.name.localeCompare(b.name, 'id-ID'),
+    );
+    const counts = new Map<string, number>();
+    await db.sets.filter(live).each((s) => counts.set(s.exercise_id, (counts.get(s.exercise_id) ?? 0) + 1));
+    return custom.map((exercise) => ({ exercise, setCount: counts.get(exercise.id) ?? 0 }));
+  });
+}
+
 export function useExercise(id: string | undefined): LocalExercise | null | undefined {
   return useLiveQuery(async () => (id ? ((await db.exercises.get(id)) ?? null) : null), [id]);
 }

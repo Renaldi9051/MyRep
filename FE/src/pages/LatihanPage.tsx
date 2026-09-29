@@ -49,6 +49,7 @@ export function LatihanPage() {
         menu={[
           ...(endSession.item ? [endSession.item] : []),
           { label: 'Buat latihan sendiri', onSelect: () => navigate('/latihan/tambah') },
+          { label: 'Kelola latihan', onSelect: () => navigate('/latihan/kelola') },
         ]}
       />
       <main className="screen__body">

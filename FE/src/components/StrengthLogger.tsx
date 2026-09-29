@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { LocalExercise, LocalSet } from '../db/types';
 import { addSet, changeExerciseInSession } from '../features/workout/actions';
-import { useLastSet, useTodaySets } from '../features/workout/queries';
+import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
 import { haptic, useWakeLock } from '../lib/device';
 import { formatNumber, formatSet } from '../lib/format';
 import { canInc, stepWeight } from '../lib/steps';
 import { AppHeader } from './AppHeader';
+import { ExerciseEditSheet } from './ExerciseEditSheet';
 import { ExercisePickerSheet } from './ExercisePickerSheet';
 import { SetEditSheet } from './SetEditSheet';
 import { SetRows } from './SetRows';
@@ -27,6 +28,8 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
 
   const [editing, setEditing] = useState<{ set: LocalSet; position: number } | null>(null);
   const [picking, setPicking] = useState(false);
+  const [editingExercise, setEditingExercise] = useState(false);
+  const setCount = useExerciseSetCount(exercise.id) ?? 0;
 
   useWakeLock(true);
 
@@ -56,6 +59,8 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
         back={{ to: '/latihan', label: 'Kembali ke daftar latihan' }}
         menu={[
           { label: 'Ganti latihan', onSelect: () => setPicking(true) },
+          // Latihan buatan sendiri bisa langsung dibetulkan (mis. salah ketik nama)
+          ...(exercise.is_custom ? [{ label: 'Edit latihan ini', onSelect: () => setEditingExercise(true) }] : []),
           ...(endSession.item ? [endSession.item] : []),
         ]}
       />
@@ -138,6 +143,14 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
           excludeId={exercise.id}
           onPick={(e) => void swap(e)}
           onClose={() => setPicking(false)}
+        />
+      )}
+      {editingExercise && (
+        <ExerciseEditSheet
+          exercise={exercise}
+          setCount={setCount}
+          onClose={() => setEditingExercise(false)}
+          onDeleted={() => navigate('/latihan', { replace: true })}
         />
       )}
       {endSession.sheet}
