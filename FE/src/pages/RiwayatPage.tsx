@@ -3,12 +3,13 @@ import { Fragment, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { AppHeader } from '../components/AppHeader';
 import { DateStrip } from '../components/DateStrip';
+import { DaySummaryCard } from '../components/DaySummaryCard';
 import { ExercisePickerSheet } from '../components/ExercisePickerSheet';
 import { SetEditSheet } from '../components/SetEditSheet';
 import { useToast } from '../components/Toast';
 import type { LocalExercise, LocalSet } from '../db/types';
 import { changeExerciseInSession, deleteExerciseInSession } from '../features/workout/actions';
-import { type DayGroup, useActiveDates, useDay } from '../features/workout/queries';
+import { type DayGroup, useActiveDates, useDay, useDaySummary } from '../features/workout/queries';
 import { formatDayMonth, formatGroupSummary, formatSet } from '../lib/format';
 import { muscleLabel } from '../lib/labels';
 import { localDate } from '../lib/time';
@@ -21,6 +22,7 @@ export function RiwayatPage() {
   const today = localDate();
   const selected = params.get('tanggal') ?? today;
   const day = useDay(selected);
+  const summary = useDaySummary(day?.groups, selected);
   const activeDates = useActiveDates();
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -64,6 +66,8 @@ export function RiwayatPage() {
             </span>
           )}
         </div>
+
+        {summary && <DaySummaryCard summary={summary} />}
 
         {day && groups.length === 0 && <p className="empty">Belum ada latihan.</p>}
 
