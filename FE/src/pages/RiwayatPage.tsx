@@ -1,4 +1,4 @@
-import { Check, ChevronUp, Pencil, Trash2 } from 'lucide-react';
+import { Check, ChevronUp, Download, Pencil, Trash2 } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { AppHeader } from '../components/AppHeader';
@@ -9,6 +9,7 @@ import { SetEditSheet } from '../components/SetEditSheet';
 import { useToast } from '../components/Toast';
 import type { LocalExercise, LocalSet } from '../db/types';
 import { changeExerciseInSession, deleteExerciseInSession } from '../features/workout/actions';
+import { downloadDayPdf } from '../features/workout/pdf';
 import { type DayGroup, useActiveDates, useDay, useDaySummary } from '../features/workout/queries';
 import { formatDayMonth, formatGroupSummary, formatSet } from '../lib/format';
 import { muscleLabel } from '../lib/labels';
@@ -27,6 +28,7 @@ export function RiwayatPage() {
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [swapping, setSwapping] = useState<DayGroup | null>(null);
+  const [exporting, setExporting] = useState(false);
   const toast = useToast();
 
   const select = (date: string) => {
@@ -48,6 +50,18 @@ export function RiwayatPage() {
     toast({ message: `Dipindah ke ${target.name}` });
   };
 
+  const exportPdf = async () => {
+    if (!day || !summary) return;
+    setExporting(true);
+    try {
+      await downloadDayPdf(selected, day.groups, summary);
+    } catch {
+      toast({ message: 'Gagal membuat PDF' });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const groups = day?.groups ?? [];
   const muscles = [...new Set(groups.map((g) => g.exercise.muscle_group))].map(muscleLabel);
   const exerciseCount = new Set(groups.map((g) => g.exercise.id)).size;
@@ -61,9 +75,23 @@ export function RiwayatPage() {
         <div className="day-head">
           <h2>{muscles.length > 0 ? muscles.join(', ') : formatDayMonth(selected)}</h2>
           {groups.length > 0 && (
-            <span className="num">
-              {exerciseCount} latihan · {day?.setCount} set
-            </span>
+            <div className="day-head__meta">
+              <span className="num">
+                {exerciseCount} latihan · {day?.setCount} set
+              </span>
+              {summary && (
+                <button
+                  type="button"
+                  className="pdf-btn"
+                  aria-label={`Unduh PDF latihan ${formatDayMonth(selected)}`}
+                  disabled={exporting}
+                  onClick={() => void exportPdf()}
+                >
+                  <Download size={14} strokeWidth={1.75} />
+                  PDF
+                </button>
+              )}
+            </div>
           )}
         </div>
 

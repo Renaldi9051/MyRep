@@ -646,6 +646,44 @@ p {
   color: var(--ink-muted);
 }
 
+.day-head__meta {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Tombol kecil unduh PDF; area tap diperluas ke 48 px lewat ::before */
+.pdf-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 10px;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 80ms ease-out;
+}
+
+.pdf-btn::before {
+  content: '';
+  position: absolute;
+  inset: -9px -4px;
+}
+
+.pdf-btn:active {
+  transform: scale(0.96);
+}
+
+.pdf-btn:disabled {
+  color: var(--ink-muted);
+}
+
 /* Ringkasan hari di Riwayat */
 .day-summary {
   margin-bottom: 14px;
