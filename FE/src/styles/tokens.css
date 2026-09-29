@@ -1,0 +1,36 @@
+/* Token desain (DESIGN.md §2). Komponen hanya memakai var(...), tidak ada hex langsung. */
+:root {
+  /* Warna */
+  --bg: #ffffff; /* latar layar, isi kartu dan tombol outline */
+  --surface: #f3f3f1; /* latar nav bawah, tombol ikon kecil, baris set aktif, baris tambah */
+  --surface-ring: #e6e6e2; /* garis luar cincin penghitung */
+  --ink: #111111; /* teks utama, isi elemen aktif, border tegas */
+  --ink-muted: #5e5e5b; /* teks sekunder: tanggal, detail, label sumbu */
+  --ink-faint: #6b6b67; /* teks hari yang belum lewat */
+  --line: #dadad6; /* border kartu, baris, chip, tab nav tidak aktif */
+  --line-dashed: #bdbdb8; /* border putus-putus hari yang belum lewat */
+  --line-soft: #ecece9; /* track cincin progres, lingkaran dekoratif */
+  --grid: #eeeeeb; /* garis grid grafik */
+  --accent: #c8f169; /* lime MyRep, teks di atasnya selalu --ink */
+  --on-ink: #ffffff; /* teks dan ikon di atas --ink */
+  --backdrop: rgba(17, 17, 17, 0.4); /* tambahan: latar di belakang sheet */
+
+  /* Font */
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-number: 'Barlow Condensed', 'Barlow', sans-serif;
+
+  /* Radius */
+  --r-sm: 12px; /* baris set */
+  --r-md: 14px; /* baris latihan, kotak tanggal */
+  --r-lg: 16px; /* tab nav, kotak grafik */
+  --r-xl: 20px; /* kotak latihan di grid */
+  --r-pill: 999px; /* pil header, tombol utama, stepper, chip */
+
+  /* Border */
+  --bw: 1.5px;
+
+  /* Jarak */
+  --pad-x: 20px; /* padding kiri kanan layar */
+  --max-w: 430px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
