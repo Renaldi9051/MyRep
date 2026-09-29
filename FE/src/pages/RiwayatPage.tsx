@@ -1,11 +1,13 @@
-import { Check, ChevronUp } from 'lucide-react';
+import { Check, ChevronUp, Trash2 } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { AppHeader } from '../components/AppHeader';
 import { DateStrip } from '../components/DateStrip';
 import { SetEditSheet } from '../components/SetEditSheet';
+import { useToast } from '../components/Toast';
 import type { LocalExercise, LocalSet } from '../db/types';
-import { useActiveDates, useDay } from '../features/workout/queries';
+import { deleteExerciseInSession } from '../features/workout/actions';
+import { type DayGroup, useActiveDates, useDay } from '../features/workout/queries';
 import { formatDayMonth, formatGroupSummary, formatSetCompact } from '../lib/format';
 import { muscleLabel } from '../lib/labels';
 import { localDate } from '../lib/time';
@@ -21,10 +23,17 @@ export function RiwayatPage() {
   const activeDates = useActiveDates();
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
+  const toast = useToast();
 
   const select = (date: string) => {
     setOpenKey(null);
     setParams(date === today ? {} : { tanggal: date }, { replace: true });
+  };
+
+  const remove = async (g: DayGroup) => {
+    const undo = await deleteExerciseInSession(g.sessionId, g.exercise.id);
+    setOpenKey(null);
+    toast({ message: `${g.exercise.name} dihapus`, actionLabel: 'Urungkan', onAction: () => void undo() });
   };
 
   const groups = day?.groups ?? [];
@@ -54,7 +63,7 @@ export function RiwayatPage() {
             const open = openKey === key;
             return (
               <Fragment key={key}>
-                <li>
+                <li className="ex-item">
                   <button
                     type="button"
                     className={open ? 'ex-row is-open' : 'ex-row'}
@@ -70,6 +79,14 @@ export function RiwayatPage() {
                         <Check size={20} strokeWidth={1.75} />
                       </>
                     )}
+                  </button>
+                  <button
+                    type="button"
+                    className="ex-item__icon"
+                    aria-label={`Hapus ${g.exercise.name} dari riwayat`}
+                    onClick={() => void remove(g)}
+                  >
+                    <Trash2 size={18} strokeWidth={1.75} />
                   </button>
                 </li>
                 {open && (

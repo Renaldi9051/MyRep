@@ -101,6 +101,30 @@ async function setDeleted(id: string, deleted: boolean): Promise<void> {
   requestSync();
 }
 
+// Riwayat: hapus lunak semua set satu latihan di satu sesi; kembalikan fungsi "Urungkan"
+export async function deleteExerciseInSession(sessionId: string, exerciseId: string): Promise<() => Promise<void>> {
+  const ids = await db.transaction('rw', db.sets, async () => {
+    const now = nowIso();
+    const sets = await db.sets
+      .where('session_id')
+      .equals(sessionId)
+      .filter((s) => live(s) && s.exercise_id === exerciseId)
+      .toArray();
+    await db.sets.bulkPut(sets.map((s) => ({ ...s, deleted_at: now, updated_at: now, pending: 1 as const })));
+    return sets.map((s) => s.id);
+  });
+  requestSync();
+  return async () => {
+    await db.transaction('rw', db.sets, async () => {
+      const now = nowIso();
+      const sets = (await db.sets.bulkGet(ids)).filter((s): s is LocalSet => s !== undefined);
+      await db.sets.bulkPut(sets.map((s) => ({ ...s, deleted_at: null, updated_at: now, pending: 1 as const })));
+      await renumber(sessionId, exerciseId, now);
+    });
+    requestSync();
+  };
+}
+
 // F5.2: pindahkan set ke latihan lain (semua set latihan itu di satu sesi)
 export async function changeExercise(setIds: string[], newExerciseId: string): Promise<void> {
   await db.transaction('rw', db.sets, async () => {

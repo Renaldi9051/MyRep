@@ -699,6 +699,56 @@ p {
   color: var(--ink-muted);
 }
 
+/* Riwayat: baris latihan + tombol hapus di kanan */
+.ex-item {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.ex-item > .ex-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.ex-item__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--ink-muted);
+  transition: transform 80ms ease-out;
+}
+
+.ex-item__icon:active {
+  transform: scale(0.96);
+  color: var(--ink);
+}
+
+/* Riwayat: set di bawah baris latihan yang terbuka (format sama dengan §5.7) */
+.set-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* kanan: sejajar dengan baris latihan (tombol hapus 48 + jarak 8) */
+  padding: 0 56px 6px 0;
+}
+
+.set-row--tap {
+  height: 48px;
+  color: var(--ink);
+}
+
+.set-row--tap > svg {
+  flex-shrink: 0;
+  color: var(--ink-muted);
+}
+
 .ex-detail {
   display: flex;
   align-items: center;
