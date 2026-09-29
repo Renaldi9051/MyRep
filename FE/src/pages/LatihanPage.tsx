@@ -88,6 +88,7 @@ export function LatihanPage() {
 function EmptyExercises() {
   const { status } = useSyncState();
   if (status === 'offline') return <p className="empty">Sambungkan internet sekali untuk memuat daftar latihan.</p>;
+  if (status === 'unreachable') return <p className="empty">Server tidak bisa dihubungi. Daftar latihan dimuat begitu server tersambung.</p>;
   if (status === 'error') {
     return (
       <div className="empty">

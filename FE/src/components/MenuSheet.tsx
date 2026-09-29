@@ -32,7 +32,7 @@ export function MenuSheet({ items, onClose }: { items: MenuItem[]; onClose: () =
           <button
             type="button"
             className="ex-row"
-            disabled={status === 'offline' || status === 'syncing'}
+            disabled={status === 'syncing'}
             onClick={() => void syncNow()}
           >
             <span className="ex-row__name">Sinkronkan sekarang</span>

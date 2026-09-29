@@ -10,6 +10,9 @@ export function useSyncLabel(): SyncLabel {
   if (status === 'offline') {
     return { text: pending > 0 ? `Offline · ${pending} tersimpan di HP` : 'Offline', synced: false };
   }
+  if (status === 'unreachable') {
+    return { text: pending > 0 ? `Server tidak terjangkau · ${pending} tersimpan di HP` : 'Server tidak terjangkau', synced: false };
+  }
   if (status === 'error') return { text: 'Gagal sinkron', synced: false };
   if (status === 'syncing' || pending > 0) {
     return { text: pending > 0 ? `Menyinkron ${pending} perubahan` : 'Menyinkron', synced: false };

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ApiError } from '../api/client';
 import { AppHeader } from '../components/AppHeader';
 import { useAuth } from '../features/auth/useAuth';
 import { useSyncState } from '../features/sync/hooks';
@@ -12,7 +13,7 @@ export function AkunPage() {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const offline = status === 'offline';
+  const disconnected = status === 'offline' || status === 'unreachable';
 
   const doLogout = async () => {
     setBusy(true);
@@ -20,7 +21,15 @@ export function AkunPage() {
     try {
       await logout();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal keluar');
+      if (err instanceof ApiError && err.isNetwork) {
+        setError(
+          navigator.onLine
+            ? 'Server tidak bisa dihubungi, jadi belum bisa keluar. Coba lagi sebentar lagi.'
+            : 'Tidak ada internet. Keluar butuh koneksi supaya sesi di server ikut ditutup.',
+        );
+      } else {
+        setError(err instanceof Error ? err.message : 'Gagal keluar');
+      }
       setBusy(false);
       setConfirming(false);
     }
@@ -73,10 +82,10 @@ export function AkunPage() {
             </>
           ) : (
             <>
-              <button type="button" className="btn btn--secondary" disabled={offline} onClick={() => setConfirming(true)}>
+              <button type="button" className="btn btn--secondary" onClick={() => setConfirming(true)}>
                 Keluar
               </button>
-              {offline && <p className="small">Keluar butuh internet supaya data tersinkron dulu.</p>}
+              {disconnected && <p className="small">Keluar butuh koneksi ke server supaya data tersinkron dulu.</p>}
             </>
           )}
         </div>

@@ -32,11 +32,20 @@ export async function apiFetch<T>(
       credentials: 'include',
     });
   } catch {
-    throw new ApiError(0, 'Tidak ada koneksi internet');
+    throw new ApiError(0, navigator.onLine ? 'Server tidak bisa dihubungi' : 'Tidak ada koneksi internet');
   }
 
   const text = await res.text();
-  const data: unknown = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    // Bukan JSON (mis. halaman error dari proxy)
+  }
+  // BE mati di balik proxy (Vite saat dev, Caddy di VPS): 502/503/504, atau 5xx tanpa body JSON
+  if ([502, 503, 504].includes(res.status) || (res.status >= 500 && data === null)) {
+    throw new ApiError(0, 'Server tidak bisa dihubungi');
+  }
   if (!res.ok) {
     const body = (data ?? {}) as ErrorBody;
     throw new ApiError(res.status, body.error ?? body.message ?? 'Terjadi kesalahan', body.code);

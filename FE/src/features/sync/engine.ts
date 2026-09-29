@@ -10,7 +10,8 @@ import { nowIso } from '../../lib/time';
 // 2. Pull: ambil perubahan setelah cursor terakhir; versi lokal yang belum terkirim dan
 //    lebih baru tidak ditimpa (updated_at terbaru menang).
 
-export type SyncStatus = 'idle' | 'syncing' | 'offline' | 'error';
+// offline = HP tidak ada internet; unreachable = ada internet tapi server tidak menjawab
+export type SyncStatus = 'idle' | 'syncing' | 'offline' | 'unreachable' | 'error';
 export type SyncState = { status: SyncStatus; lastSyncedAt: string | null; error: string | null };
 
 const BATCH = 500;
@@ -96,7 +97,7 @@ async function runOnce(): Promise<void> {
       setState({ status: 'idle' });
       onUnauthorized();
     } else if (err instanceof ApiError && err.isNetwork) {
-      setState({ status: 'offline' });
+      setState({ status: navigator.onLine ? 'unreachable' : 'offline' });
     } else {
       setState({ status: 'error', error: err instanceof Error ? err.message : String(err) });
     }
