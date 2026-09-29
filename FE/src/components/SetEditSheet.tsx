@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import type { ExerciseType, LocalExercise, LocalSet } from '../db/types';
-import { changeExerciseInSession, deleteSet, updateSet } from '../features/workout/actions';
+import type { ExerciseType, LocalSet } from '../db/types';
+import { deleteSet, updateSet } from '../features/workout/actions';
 import { formatDuration, formatNumber, formatSpeed } from '../lib/format';
 import { canInc, stepDuration, stepIncline, stepSpeed, stepWeight } from '../lib/steps';
-import { ExercisePickerSheet } from './ExercisePickerSheet';
 import { Sheet } from './Sheet';
 import { Stepper } from './Stepper';
 import { useToast } from './Toast';
@@ -14,19 +13,17 @@ type Props = {
   exerciseName: string;
   type: ExerciseType;
   onClose: () => void;
-  // Dipanggil setelah semua set latihan ini di sesinya dipindah ke latihan lain
-  onSwapped?: (target: LocalExercise) => void;
 };
 
-// F5: edit rep/beban (atau data kardio), ganti latihan, hapus dengan "Urungkan" 5 detik
-export function SetEditSheet({ set, position, exerciseName, type, onClose, onSwapped }: Props) {
+// F5: edit rep/beban (atau data kardio), hapus dengan "Urungkan" 5 detik.
+// Ganti latihan dilakukan per latihan (semua set), dari baris latihan di Riwayat.
+export function SetEditSheet({ set, position, exerciseName, type, onClose }: Props) {
   const toast = useToast();
   const [reps, setReps] = useState(set.reps ?? 0);
   const [weight, setWeight] = useState(set.weight_kg ?? 0);
   const [duration, setDuration] = useState(set.duration_sec ?? 0);
   const [incline, setIncline] = useState(set.incline_pct);
   const [speed, setSpeed] = useState(set.speed_kmh ?? 0);
-  const [picking, setPicking] = useState(false);
 
   const cardio = type === 'kardio';
   const valid = cardio ? duration > 0 : reps > 0;
@@ -44,26 +41,6 @@ export function SetEditSheet({ set, position, exerciseName, type, onClose, onSwa
     onClose();
     toast({ message: `Set ${position} dihapus`, actionLabel: 'Urungkan', onAction: () => void undo() });
   };
-
-  const swap = async (target: LocalExercise) => {
-    await changeExerciseInSession(set.session_id, set.exercise_id, target.id);
-    setPicking(false);
-    onClose();
-    toast({ message: `Dipindah ke ${target.name}` });
-    onSwapped?.(target);
-  };
-
-  if (picking) {
-    return (
-      <ExercisePickerSheet
-        title={`Ganti ${exerciseName} dengan…`}
-        onlyType={type}
-        excludeId={set.exercise_id}
-        onPick={(e) => void swap(e)}
-        onClose={() => setPicking(false)}
-      />
-    );
-  }
 
   return (
     <Sheet title={`${exerciseName} · Set ${position}`} onClose={onClose}>
@@ -115,9 +92,6 @@ export function SetEditSheet({ set, position, exerciseName, type, onClose, onSwa
         )}
         <button type="button" className="btn btn--primary" disabled={!valid} onClick={() => void save()}>
           Simpan
-        </button>
-        <button type="button" className="btn btn--secondary" onClick={() => setPicking(true)}>
-          Ganti latihan
         </button>
         <button type="button" className="btn btn--secondary" onClick={() => void remove()}>
           Hapus set

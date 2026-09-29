@@ -3,10 +3,11 @@ import { Fragment, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { AppHeader } from '../components/AppHeader';
 import { DateStrip } from '../components/DateStrip';
+import { ExercisePickerSheet } from '../components/ExercisePickerSheet';
 import { SetEditSheet } from '../components/SetEditSheet';
 import { useToast } from '../components/Toast';
 import type { LocalExercise, LocalSet } from '../db/types';
-import { deleteExerciseInSession } from '../features/workout/actions';
+import { changeExerciseInSession, deleteExerciseInSession } from '../features/workout/actions';
 import { type DayGroup, useActiveDates, useDay } from '../features/workout/queries';
 import { formatDayMonth, formatGroupSummary, formatSet } from '../lib/format';
 import { muscleLabel } from '../lib/labels';
@@ -23,6 +24,7 @@ export function RiwayatPage() {
   const activeDates = useActiveDates();
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
+  const [swapping, setSwapping] = useState<DayGroup | null>(null);
   const toast = useToast();
 
   const select = (date: string) => {
@@ -34,6 +36,14 @@ export function RiwayatPage() {
     const undo = await deleteExerciseInSession(g.sessionId, g.exercise.id);
     setOpenKey(null);
     toast({ message: `${g.exercise.name} dihapus`, actionLabel: 'Urungkan', onAction: () => void undo() });
+  };
+
+  // F5.2: semua set latihan ini di hari itu pindah ke latihan lain
+  const swap = async (g: DayGroup, target: LocalExercise) => {
+    await changeExerciseInSession(g.sessionId, g.exercise.id, target.id);
+    setSwapping(null);
+    setOpenKey(null);
+    toast({ message: `Dipindah ke ${target.name}` });
   };
 
   const groups = day?.groups ?? [];
@@ -83,6 +93,14 @@ export function RiwayatPage() {
                   <button
                     type="button"
                     className="ex-item__icon"
+                    aria-label={`Ganti latihan ${g.exercise.name}`}
+                    onClick={() => setSwapping(g)}
+                  >
+                    <Pencil size={18} strokeWidth={1.75} />
+                  </button>
+                  <button
+                    type="button"
+                    className="ex-item__icon"
                     aria-label={`Hapus ${g.exercise.name} dari riwayat`}
                     onClick={() => void remove(g)}
                   >
@@ -127,7 +145,15 @@ export function RiwayatPage() {
           exerciseName={editing.exercise.name}
           type={editing.exercise.type}
           onClose={() => setEditing(null)}
-          onSwapped={() => setOpenKey(null)}
+        />
+      )}
+      {swapping && (
+        <ExercisePickerSheet
+          title={`Ganti ${swapping.exercise.name} (${swapping.sets.length} set) dengan…`}
+          onlyType={swapping.exercise.type}
+          excludeId={swapping.exercise.id}
+          onPick={(e) => void swap(swapping, e)}
+          onClose={() => setSwapping(null)}
         />
       )}
     </>

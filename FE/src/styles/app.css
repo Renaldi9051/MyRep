@@ -699,7 +699,7 @@ p {
   color: var(--ink-muted);
 }
 
-/* Riwayat: baris latihan + tombol hapus di kanan */
+/* Riwayat: baris latihan + tombol ganti latihan dan hapus di kanan */
 .ex-item {
   display: flex;
   align-items: stretch;
@@ -735,8 +735,8 @@ p {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  /* kanan: sejajar dengan baris latihan (tombol hapus 48 + jarak 8) */
-  padding: 0 56px 6px 0;
+  /* kanan: sejajar dengan baris latihan (2 tombol ikon 48 + jarak 8) */
+  padding: 0 112px 6px 0;
 }
 
 .set-row--tap {
