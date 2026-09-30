@@ -1642,3 +1642,136 @@ p {
 .kelola-list {
   margin-top: 20px;
 }
+
+/* ---------- Panduan gerakan (§5.16) ---------- */
+
+.gerakan {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gerakan__stage {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+}
+
+.gerakan__status {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 0 20px;
+  font-size: 14px;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.gerakan__toggle {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+
+.gerakan__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+
+.gerakan__canvas:active {
+  cursor: grabbing;
+}
+
+.gerakan-fig {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.gerakan-fig :is(line, rect, circle) {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gerakan-fig__alat {
+  stroke: var(--line);
+  stroke-width: 3;
+  fill: var(--surface);
+}
+
+.gerakan-fig__tulang {
+  stroke: var(--ink-muted);
+  stroke-width: 5;
+}
+
+/* Otot utama */
+.gerakan-fig__sorot {
+  stroke: var(--muscle);
+  stroke-width: 11;
+}
+
+.gerakan-fig__kepala {
+  stroke: var(--ink-muted);
+  stroke-width: 2.5;
+  fill: var(--bg);
+}
+
+.gerakan-fig__beban {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  fill: var(--surface);
+}
+
+.gerakan-fig__pegangan {
+  stroke-width: 5;
+}
+
+.gerakan-fig__kabel {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.gerakan__muscles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gerakan__chip {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-pill);
+  font-size: 13px;
+}
+
+/* Otot utama sekaligus legenda warna figur */
+.gerakan__chip--main {
+  border-color: var(--muscle);
+  background: var(--muscle);
+  color: var(--on-muscle);
+  font-weight: 600;
+}
+
+.gerakan__cues {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.gerakan__cues li::marker {
+  color: var(--ink-muted);
+  font-weight: 600;
+}

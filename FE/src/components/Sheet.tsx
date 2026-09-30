@@ -7,10 +7,11 @@ type Props = {
   onClose: () => void;
   children: ReactNode;
   tall?: boolean;
+  closeLabel?: string;
 };
 
 // Panel dari bawah untuk menu, edit set, pilih latihan, dan ringkasan
-export function Sheet({ title, onClose, children, tall }: Props) {
+export function Sheet({ title, onClose, children, tall, closeLabel = 'Tutup' }: Props) {
   const titleId = useId();
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export function Sheet({ title, onClose, children, tall }: Props) {
           <h2 id={titleId} className="sheet__title">
             {title}
           </h2>
-          <button type="button" className="icon-circle" aria-label="Tutup" onClick={onClose}>
+          <button type="button" className="icon-circle" aria-label={closeLabel} onClick={onClose}>
             <X size={20} strokeWidth={1.75} />
           </button>
         </div>

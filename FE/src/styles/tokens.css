@@ -15,6 +15,13 @@
   --on-accent: #111111; /* teks di atas --accent, tetap gelap di kedua tema */
   --on-ink: #ffffff; /* teks dan ikon di atas --ink */
   --backdrop: rgba(17, 17, 17, 0.4); /* tambahan: latar di belakang sheet */
+  --muscle: #d6361f; /* merah penanda otot utama, hanya di panduan gerakan */
+  --on-muscle: #ffffff; /* teks di atas --muscle, tetap putih di kedua tema */
+  /* Manekin 3D panduan gerakan (dibaca lewat getComputedStyle di mannequin3d.ts) */
+  --fig-body: #a9a9a4; /* tubuh */
+  --fig-tool: #cdcdc8; /* alat, bangku, mesin */
+  --fig-floor: #e2e2de; /* piringan lantai */
+  --fig-iron: #2b2b2b; /* barbel, kabel, pegangan */
   color-scheme: light;
 
   /* Font */
@@ -53,6 +60,10 @@
     --grid: #242422;
     --on-ink: #111111;
     --backdrop: rgba(0, 0, 0, 0.6);
+    --fig-body: #8a8a85;
+    --fig-tool: #4a4a47;
+    --fig-floor: #262624;
+    --fig-iron: #9a9a95;
     color-scheme: dark;
   }
 }
@@ -70,5 +81,9 @@
   --grid: #242422;
   --on-ink: #111111;
   --backdrop: rgba(0, 0, 0, 0.6);
+  --fig-body: #8a8a85;
+  --fig-tool: #4a4a47;
+  --fig-floor: #262624;
+  --fig-iron: #9a9a95;
   color-scheme: dark;
 }
