@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { formatMonthYear } from '../lib/format';
 import { localDate, parseLocalDate } from '../lib/time';
 import { Sheet } from './Sheet';
+import { useSwipe } from './useSwipe';
 
 const WEEK_LABELS = ['SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB', 'MIN'];
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -18,6 +19,7 @@ type Props = {
 };
 
 // Kalender bulanan untuk lompat ke tanggal lama di Riwayat. Tap judul untuk pilih bulan dan tahun.
+// Geser kiri/kanan untuk pindah bulan (atau tahun saat memilih bulan).
 export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Props) {
   const today = localDate();
   const now = parseLocalDate(today);
@@ -25,6 +27,8 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
   const [year, setYear] = useState(start.getFullYear());
   const [month, setMonth] = useState(start.getMonth());
   const [picking, setPicking] = useState(false);
+  // Arah masuk isi baru untuk animasi slide; null saat baru dibuka
+  const [enter, setEnter] = useState<'next' | 'prev' | null>(null);
 
   // Hari latihan per bulan ("2026-09" -> 5), sekaligus tahun paling awal yang ada datanya
   const perMonth = new Map<string, number>();
@@ -36,11 +40,25 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
   }
 
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
-  const shiftMonth = (delta: number) => {
+  const canPrev = picking ? year > minYear : !(year <= minYear && month === 0);
+  const canNext = picking ? year < now.getFullYear() : !isCurrentMonth;
+
+  const shift = (delta: 1 | -1) => {
+    setEnter(delta === 1 ? 'next' : 'prev');
+    if (picking) {
+      setYear(year + delta);
+      return;
+    }
     const d = new Date(year, month + delta, 1);
     setYear(d.getFullYear());
     setMonth(d.getMonth());
   };
+
+  const swipe = useSwipe({ onSwipe: shift, canPrev, canNext });
+  const trackClass = ['cal-swipe__track', swipe.dragging && 'is-dragging', enter && `cal-swipe__track--${enter}`]
+    .filter(Boolean)
+    .join(' ');
+  const trackStyle = swipe.dx ? { transform: `translateX(${swipe.dx}px)` } : undefined;
 
   const nav = picking ? (
     <div className="cal-nav">
@@ -48,8 +66,8 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
         type="button"
         className="cal-nav__arrow"
         aria-label="Tahun sebelumnya"
-        disabled={year <= minYear}
-        onClick={() => setYear(year - 1)}
+        disabled={!canPrev}
+        onClick={() => shift(-1)}
       >
         <ChevronLeft size={20} strokeWidth={1.75} />
       </button>
@@ -58,8 +76,8 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
         type="button"
         className="cal-nav__arrow"
         aria-label="Tahun berikutnya"
-        disabled={year >= now.getFullYear()}
-        onClick={() => setYear(year + 1)}
+        disabled={!canNext}
+        onClick={() => shift(1)}
       >
         <ChevronRight size={20} strokeWidth={1.75} />
       </button>
@@ -70,12 +88,19 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
         type="button"
         className="cal-nav__arrow"
         aria-label="Bulan sebelumnya"
-        disabled={year <= minYear && month === 0}
-        onClick={() => shiftMonth(-1)}
+        disabled={!canPrev}
+        onClick={() => shift(-1)}
       >
         <ChevronLeft size={20} strokeWidth={1.75} />
       </button>
-      <button type="button" className="cal-nav__title cal-nav__title--btn" onClick={() => setPicking(true)}>
+      <button
+        type="button"
+        className="cal-nav__title cal-nav__title--btn"
+        onClick={() => {
+          setEnter(null);
+          setPicking(true);
+        }}
+      >
         {formatMonthYear(year, month)}
         <ChevronDown size={18} strokeWidth={1.75} />
       </button>
@@ -83,8 +108,8 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
         type="button"
         className="cal-nav__arrow"
         aria-label="Bulan berikutnya"
-        disabled={isCurrentMonth}
-        onClick={() => shiftMonth(1)}
+        disabled={!canNext}
+        onClick={() => shift(1)}
       >
         <ChevronRight size={20} strokeWidth={1.75} />
       </button>
@@ -95,29 +120,34 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
     return (
       <Sheet title="Pilih bulan" onClose={onClose}>
         {nav}
-        <div className="cal-months">
-          {MONTH_SHORT.map((label, m) => {
-            const future = year > now.getFullYear() || (year === now.getFullYear() && m > now.getMonth());
-            const count = perMonth.get(monthKey(year, m)) ?? 0;
-            const current = year === start.getFullYear() && m === start.getMonth();
-            const cls = ['cal-month', current && 'is-selected', future && 'is-future'].filter(Boolean).join(' ');
-            return (
-              <button
-                key={label}
-                type="button"
-                className={cls}
-                disabled={future}
-                aria-label={`${formatMonthYear(year, m)}, ${count} hari latihan`}
-                onClick={() => {
-                  setMonth(m);
-                  setPicking(false);
-                }}
-              >
-                <span className="cal-month__name">{label}</span>
-                <span className="cal-month__count num">{count > 0 ? `${count} hari` : '–'}</span>
-              </button>
-            );
-          })}
+        <div className="cal-swipe" {...swipe.handlers}>
+          <div key={year} className={trackClass} style={trackStyle}>
+            <div className="cal-months">
+              {MONTH_SHORT.map((label, m) => {
+                const future = year > now.getFullYear() || (year === now.getFullYear() && m > now.getMonth());
+                const count = perMonth.get(monthKey(year, m)) ?? 0;
+                const current = year === start.getFullYear() && m === start.getMonth();
+                const cls = ['cal-month', current && 'is-selected', future && 'is-future'].filter(Boolean).join(' ');
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    className={cls}
+                    disabled={future}
+                    aria-label={`${formatMonthYear(year, m)}, ${count} hari latihan`}
+                    onClick={() => {
+                      setMonth(m);
+                      setEnter(null);
+                      setPicking(false);
+                    }}
+                  >
+                    <span className="cal-month__name">{label}</span>
+                    <span className="cal-month__count num">{count > 0 ? `${count} hari` : '–'}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </Sheet>
     );
@@ -135,38 +165,42 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
   return (
     <Sheet title="Pilih tanggal" onClose={onClose}>
       {nav}
-      <div className="cal-grid" role="group" aria-label={formatMonthYear(year, month)}>
-        {WEEK_LABELS.map((d) => (
-          <span key={d} className="cal-grid__label">
-            {d}
-          </span>
-        ))}
-        {cells.map((date, i) => {
-          if (!date) return <span key={`blank-${i}`} />;
-          const future = date > today;
-          const cls = [
-            'cal-day',
-            date === selected && 'is-selected',
-            date === today && 'is-today',
-            future && 'is-future',
-          ]
-            .filter(Boolean)
-            .join(' ');
-          return (
-            <button
-              key={date}
-              type="button"
-              className={cls}
-              disabled={future}
-              aria-pressed={date === selected}
-              aria-label={parseLocalDate(date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-              onClick={() => onSelect(date)}
-            >
-              <span className="num">{Number(date.slice(8))}</span>
-              <span className={activeDates.has(date) ? 'date-box__dot has-data' : 'date-box__dot'} />
-            </button>
-          );
-        })}
+      <div className="cal-swipe" {...swipe.handlers}>
+        <div key={monthKey(year, month)} className={trackClass} style={trackStyle}>
+          <div className="cal-grid" role="group" aria-label={formatMonthYear(year, month)}>
+            {WEEK_LABELS.map((d) => (
+              <span key={d} className="cal-grid__label">
+                {d}
+              </span>
+            ))}
+            {cells.map((date, i) => {
+              if (!date) return <span key={`blank-${i}`} />;
+              const future = date > today;
+              const cls = [
+                'cal-day',
+                date === selected && 'is-selected',
+                date === today && 'is-today',
+                future && 'is-future',
+              ]
+                .filter(Boolean)
+                .join(' ');
+              return (
+                <button
+                  key={date}
+                  type="button"
+                  className={cls}
+                  disabled={future}
+                  aria-pressed={date === selected}
+                  aria-label={parseLocalDate(date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  onClick={() => onSelect(date)}
+                >
+                  <span className="num">{Number(date.slice(8))}</span>
+                  <span className={activeDates.has(date) ? 'date-box__dot has-data' : 'date-box__dot'} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
       <p className="cal-count">{count > 0 ? `${count} hari latihan di bulan ini` : 'Belum ada latihan di bulan ini.'}</p>
       <button type="button" className="btn btn--secondary" disabled={selected === today} onClick={() => onSelect(today)}>
