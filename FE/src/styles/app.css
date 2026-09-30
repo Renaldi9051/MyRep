@@ -260,7 +260,7 @@ p {
   width: 112px;
   height: 112px;
   background: var(--accent);
-  color: var(--ink);
+  color: var(--on-accent);
   font-family: var(--font-number);
   font-size: 44px;
   font-weight: 700;
@@ -792,7 +792,7 @@ p {
   padding: 2px 8px;
   border-radius: var(--r-pill);
   background: var(--accent);
-  color: var(--ink);
+  color: var(--on-accent);
   font-size: 12px;
 }
 

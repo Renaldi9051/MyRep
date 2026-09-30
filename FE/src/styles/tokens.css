@@ -11,9 +11,11 @@
   --line-dashed: #bdbdb8; /* border putus-putus hari yang belum lewat */
   --line-soft: #ecece9; /* track cincin progres, lingkaran dekoratif */
   --grid: #eeeeeb; /* garis grid grafik */
-  --accent: #c8f169; /* lime MyReps, teks di atasnya selalu --ink */
+  --accent: #c8f169; /* lime MyReps, teks di atasnya selalu --on-accent */
+  --on-accent: #111111; /* teks di atas --accent, tetap gelap di kedua tema */
   --on-ink: #ffffff; /* teks dan ikon di atas --ink */
   --backdrop: rgba(17, 17, 17, 0.4); /* tambahan: latar di belakang sheet */
+  color-scheme: light;
 
   /* Font */
   --font-body: 'Barlow', system-ui, sans-serif;
@@ -33,4 +35,40 @@
   --pad-x: 20px; /* padding kiri kanan layar */
   --max-w: 430px;
   --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+/* Mode gelap: monokrom dibalik, lime tetap. Ikut sistem kecuali pengguna memilih
+   Terang/Gelap di Akun (atribut data-theme di <html>, lihat lib/theme.ts). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #111111;
+    --surface: #1c1c1b;
+    --surface-ring: #2c2c2a;
+    --ink: #f2f2f0;
+    --ink-muted: #a6a6a1;
+    --ink-faint: #93938e;
+    --line: #3a3a37;
+    --line-dashed: #5a5a55;
+    --line-soft: #262624;
+    --grid: #242422;
+    --on-ink: #111111;
+    --backdrop: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #111111;
+  --surface: #1c1c1b;
+  --surface-ring: #2c2c2a;
+  --ink: #f2f2f0;
+  --ink-muted: #a6a6a1;
+  --ink-faint: #93938e;
+  --line: #3a3a37;
+  --line-dashed: #5a5a55;
+  --line-soft: #262624;
+  --grid: #242422;
+  --on-ink: #111111;
+  --backdrop: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
 }
