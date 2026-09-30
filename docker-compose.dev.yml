@@ -1,0 +1,39 @@
+# Database lokal untuk development (bukan untuk VPS). Dari root repo:
+#   pnpm db:up        nyalakan Postgres + proxy
+#   pnpm db:migrate   buat tabel
+#   pnpm db:seed      isi latihan bawaan
+#   pnpm db:down      matikan (data tetap ada di volume pgdata)
+# Lalu di .env: DATABASE_URL=postgres://postgres:postgres@localhost:5432/myrep
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: myrep
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d myrep"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+
+  # BE memakai driver @neondatabase/serverless (WebSocket), bukan protokol Postgres biasa.
+  # Proxy ini menerjemahkan WebSocket ke Postgres di atas (lihat BE/src/db/index.ts).
+  neon-proxy:
+    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+    environment:
+      PG_CONNECTION_STRING: postgres://postgres:postgres@db:5432/myrep
+    ports:
+      - "4444:4444"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
