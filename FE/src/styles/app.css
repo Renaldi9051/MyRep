@@ -345,18 +345,22 @@ p {
 }
 
 /* Lingkaran mengikuti ruang yang tersisa: 188px di layar tinggi (DESIGN §5.4),
-   mengecil sampai 112px supaya tombol Simpan tetap terlihat di HP pendek. */
+   mengecil sampai 112px supaya tombol Simpan tetap terlihat di HP pendek.
+   Dipusatkan lewat position absolute, bukan grid place-items: Safari iOS 16/17 salah
+   menaruh item grid di dalam container-type: size, lingkaran jatuh menutupi tombol. */
 .counter__ring-area {
+  position: relative;
   flex: 1 1 0;
-  display: grid;
-  place-items: center;
   min-height: 150px;
   container-type: size;
 }
 
 .ring {
-  --ring: clamp(112px, calc(100cqh - 44px), 188px);
+  --ring: 188px;
   --ring-gap: calc(var(--ring) * 0.085);
+  position: absolute;
+  inset: 0;
+  margin: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -369,6 +373,13 @@ p {
   box-shadow:
     0 0 0 var(--ring-gap) var(--surface),
     0 0 0 calc(var(--ring-gap) + 1.5px) var(--surface-ring);
+}
+
+/* Browser tanpa container query (iOS < 16) tetap pakai 188px */
+@supports (container-type: size) {
+  .ring {
+    --ring: clamp(112px, calc(100cqh - 44px), 188px);
+  }
 }
 
 .ring__value {
