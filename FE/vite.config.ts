@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'MyReps',
         short_name: 'MyReps',
@@ -18,8 +18,13 @@ export default defineConfig({
         display: 'standalone',
         theme_color: '#FFFFFF',
         background_color: '#FFFFFF',
-        // TODO: tambah ikon PNG 192 dan 512 setelah desain dipilih
-        icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' }],
+        // PNG dibutuhkan Android untuk ikon layar utama; maskable dipotong sesuai bentuk ikon HP
+        icons: [
+          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' },
+        ],
       },
       workbox: {
         navigateFallbackDenylist: [/^\/api\//],
