@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router';
+import { Navigate, Outlet, Route, Routes, useLocation, useMatch } from 'react-router';
 import { BottomNav } from './components/BottomNav';
 import { useAuth } from './features/auth/useAuth';
 import { useSyncTriggers } from './features/sync/hooks';
-import { hideBoot } from './lib/boot';
+import { hideBoot, useBootReady } from './lib/boot';
 import { AkunPage } from './pages/AkunPage';
 import { CatatPage } from './pages/CatatPage';
 import { KelolaLatihanPage } from './pages/KelolaLatihanPage';
@@ -34,6 +34,8 @@ function RequireAuth() {
 // DESIGN §5.2: nav bawah tampil di semua layar kecuali Masuk
 function AppLayout() {
   useSyncTriggers();
+  // /latihan (start_url ikon) memberi sinyal sendiri setelah datanya siap; halaman lain langsung
+  useBootReady(!useMatch('/latihan'));
   return (
     <div className="screen">
       <Outlet />
@@ -52,9 +54,9 @@ function GuestOnly() {
 // DESIGN §7
 export function App() {
   const { status } = useAuth();
-  // Layar pembuka memudar setelah status login diketahui, jadi tidak ada splash kedua
+  // Belum login: layar pembuka memudar ke halaman Masuk begitu status diketahui
   useEffect(() => {
-    if (status !== 'loading') hideBoot();
+    if (status === 'guest') hideBoot();
   }, [status]);
 
   return (

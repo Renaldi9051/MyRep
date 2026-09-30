@@ -31,12 +31,14 @@
         display: grid;
         place-items: center;
         background: #111111;
-        transition: opacity 320ms ease;
+        transition: opacity 360ms cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: opacity;
       }
       #boot svg {
         width: 58px;
         height: 80px;
-        transition: transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        transition: transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        will-change: transform;
       }
       #boot.is-done {
         opacity: 0;

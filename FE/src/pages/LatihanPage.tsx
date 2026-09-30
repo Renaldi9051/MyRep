@@ -10,6 +10,7 @@ import { syncNow } from '../features/sync/engine';
 import { useSyncState } from '../features/sync/hooks';
 import { useSyncLabel } from '../features/sync/useSyncLabel';
 import { useExerciseUsage, useExercises, useWeekGroupSessions } from '../features/workout/queries';
+import { useBootReady } from '../lib/boot';
 import { formatDayMonth } from '../lib/format';
 import { localDate } from '../lib/time';
 
@@ -23,6 +24,7 @@ export function LatihanPage() {
   const exercises = useExercises();
   const usage = useExerciseUsage();
   const week = useWeekGroupSessions();
+  useBootReady(exercises !== undefined && usage !== undefined && week !== undefined);
   const sync = useSyncLabel();
   const endSession = useEndSession();
   const [picking, setPicking] = useState(false);
