@@ -1,12 +1,15 @@
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { formatMonthYear } from '../lib/format';
 import { localDate, parseLocalDate } from '../lib/time';
 import { Sheet } from './Sheet';
-import { useSwipe } from './useSwipe';
+import { useSwipePager } from './useSwipe';
 
 const WEEK_LABELS = ['SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB', 'MIN'];
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+const PAGES = [-1, 0, 1] as const; // halaman sebelumnya, sekarang, berikutnya di track geser
+const CELLS = 42; // selalu 6 baris supaya tinggi kalender tidak melonjak antar bulan
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const monthKey = (year: number, month: number) => `${year}-${pad(month + 1)}`;
@@ -27,8 +30,6 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
   const [year, setYear] = useState(start.getFullYear());
   const [month, setMonth] = useState(start.getMonth());
   const [picking, setPicking] = useState(false);
-  // Arah masuk isi baru untuk animasi slide; null saat baru dibuka
-  const [enter, setEnter] = useState<'next' | 'prev' | null>(null);
 
   // Hari latihan per bulan ("2026-09" -> 5), sekaligus tahun paling awal yang ada datanya
   const perMonth = new Map<string, number>();
@@ -44,7 +45,6 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
   const canNext = picking ? year < now.getFullYear() : !isCurrentMonth;
 
   const shift = (delta: 1 | -1) => {
-    setEnter(delta === 1 ? 'next' : 'prev');
     if (picking) {
       setYear(year + delta);
       return;
@@ -54,11 +54,25 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
     setMonth(d.getMonth());
   };
 
-  const swipe = useSwipe({ onSwipe: shift, canPrev, canNext });
-  const trackClass = ['cal-swipe__track', swipe.dragging && 'is-dragging', enter && `cal-swipe__track--${enter}`]
-    .filter(Boolean)
-    .join(' ');
-  const trackStyle = swipe.dx ? { transform: `translateX(${swipe.dx}px)` } : undefined;
+  const swipe = useSwipePager({
+    pageKey: picking ? `y${year}` : monthKey(year, month),
+    canPrev,
+    canNext,
+    onChange: shift,
+  });
+
+  // Track berisi tiga halaman; hanya halaman tengah yang bisa difokus dan dibaca pembaca layar
+  const pager = (render: (offset: -1 | 0 | 1) => ReactNode) => (
+    <div className="cal-swipe" {...swipe.handlers}>
+      <div ref={swipe.trackRef} className="cal-swipe__track">
+        {PAGES.map((offset) => (
+          <div key={offset} className="cal-swipe__page" aria-hidden={offset !== 0} inert={offset !== 0}>
+            {(offset === 0 || (offset === -1 ? canPrev : canNext)) && render(offset)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const nav = picking ? (
     <div className="cal-nav">
@@ -67,7 +81,7 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
         className="cal-nav__arrow"
         aria-label="Tahun sebelumnya"
         disabled={!canPrev}
-        onClick={() => shift(-1)}
+        onClick={() => swipe.go(-1)}
       >
         <ChevronLeft size={20} strokeWidth={1.75} />
       </button>
@@ -77,7 +91,7 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
         className="cal-nav__arrow"
         aria-label="Tahun berikutnya"
         disabled={!canNext}
-        onClick={() => shift(1)}
+        onClick={() => swipe.go(1)}
       >
         <ChevronRight size={20} strokeWidth={1.75} />
       </button>
@@ -89,17 +103,14 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
         className="cal-nav__arrow"
         aria-label="Bulan sebelumnya"
         disabled={!canPrev}
-        onClick={() => shift(-1)}
+        onClick={() => swipe.go(-1)}
       >
         <ChevronLeft size={20} strokeWidth={1.75} />
       </button>
       <button
         type="button"
         className="cal-nav__title cal-nav__title--btn"
-        onClick={() => {
-          setEnter(null);
-          setPicking(true);
-        }}
+        onClick={() => setPicking(true)}
       >
         {formatMonthYear(year, month)}
         <ChevronDown size={18} strokeWidth={1.75} />
@@ -109,7 +120,7 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
         className="cal-nav__arrow"
         aria-label="Bulan berikutnya"
         disabled={!canNext}
-        onClick={() => shift(1)}
+        onClick={() => swipe.go(1)}
       >
         <ChevronRight size={20} strokeWidth={1.75} />
       </button>
@@ -120,13 +131,14 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
     return (
       <Sheet title="Pilih bulan" onClose={onClose}>
         {nav}
-        <div className="cal-swipe" {...swipe.handlers}>
-          <div key={year} className={trackClass} style={trackStyle}>
+        {pager((offset) => {
+          const y = year + offset;
+          return (
             <div className="cal-months">
               {MONTH_SHORT.map((label, m) => {
-                const future = year > now.getFullYear() || (year === now.getFullYear() && m > now.getMonth());
-                const count = perMonth.get(monthKey(year, m)) ?? 0;
-                const current = year === start.getFullYear() && m === start.getMonth();
+                const future = y > now.getFullYear() || (y === now.getFullYear() && m > now.getMonth());
+                const count = perMonth.get(monthKey(y, m)) ?? 0;
+                const current = y === start.getFullYear() && m === start.getMonth();
                 const cls = ['cal-month', current && 'is-selected', future && 'is-future'].filter(Boolean).join(' ');
                 return (
                   <button
@@ -134,10 +146,10 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
                     type="button"
                     className={cls}
                     disabled={future}
-                    aria-label={`${formatMonthYear(year, m)}, ${count} hari latihan`}
+                    aria-label={`${formatMonthYear(y, m)}, ${count} hari latihan`}
                     onClick={() => {
+                      setYear(y);
                       setMonth(m);
-                      setEnter(null);
                       setPicking(false);
                     }}
                   >
@@ -147,61 +159,62 @@ export function CalendarSheet({ selected, activeDates, onSelect, onClose }: Prop
                 );
               })}
             </div>
-          </div>
-        </div>
+          );
+        })}
       </Sheet>
     );
   }
 
-  // Grid mulai Senin; kotak kosong sebelum tanggal 1
-  const lead = (new Date(year, month, 1).getDay() + 6) % 7;
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells = [
-    ...Array.from({ length: lead }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) => `${monthKey(year, month)}-${pad(i + 1)}`),
-  ];
+  // Grid mulai Senin; kotak kosong sebelum tanggal 1 dan sesudah tanggal terakhir
+  const monthGrid = (offset: -1 | 0 | 1) => {
+    const first = new Date(year, month + offset, 1);
+    const y = first.getFullYear();
+    const m = first.getMonth();
+    const lead = (first.getDay() + 6) % 7;
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const cells = Array.from({ length: CELLS }, (_, i) => {
+      const day = i - lead + 1;
+      return day >= 1 && day <= daysInMonth ? `${monthKey(y, m)}-${pad(day)}` : null;
+    });
+    return (
+      <div className="cal-grid" role="group" aria-label={formatMonthYear(y, m)}>
+        {cells.map((date, i) => {
+          if (!date) return <span key={`blank-${i}`} className="cal-blank" />;
+          const future = date > today;
+          const cls = ['cal-day', date === selected && 'is-selected', date === today && 'is-today', future && 'is-future']
+            .filter(Boolean)
+            .join(' ');
+          return (
+            <button
+              key={date}
+              type="button"
+              className={cls}
+              disabled={future}
+              aria-pressed={date === selected}
+              aria-label={parseLocalDate(date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              onClick={() => onSelect(date)}
+            >
+              <span className="num">{Number(date.slice(8))}</span>
+              <span className={activeDates.has(date) ? 'date-box__dot has-data' : 'date-box__dot'} />
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
   const count = perMonth.get(monthKey(year, month)) ?? 0;
 
   return (
     <Sheet title="Pilih tanggal" onClose={onClose}>
       {nav}
-      <div className="cal-swipe" {...swipe.handlers}>
-        <div key={monthKey(year, month)} className={trackClass} style={trackStyle}>
-          <div className="cal-grid" role="group" aria-label={formatMonthYear(year, month)}>
-            {WEEK_LABELS.map((d) => (
-              <span key={d} className="cal-grid__label">
-                {d}
-              </span>
-            ))}
-            {cells.map((date, i) => {
-              if (!date) return <span key={`blank-${i}`} />;
-              const future = date > today;
-              const cls = [
-                'cal-day',
-                date === selected && 'is-selected',
-                date === today && 'is-today',
-                future && 'is-future',
-              ]
-                .filter(Boolean)
-                .join(' ');
-              return (
-                <button
-                  key={date}
-                  type="button"
-                  className={cls}
-                  disabled={future}
-                  aria-pressed={date === selected}
-                  aria-label={parseLocalDate(date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  onClick={() => onSelect(date)}
-                >
-                  <span className="num">{Number(date.slice(8))}</span>
-                  <span className={activeDates.has(date) ? 'date-box__dot has-data' : 'date-box__dot'} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <div className="cal-grid cal-grid--labels" aria-hidden>
+        {WEEK_LABELS.map((d) => (
+          <span key={d} className="cal-grid__label">
+            {d}
+          </span>
+        ))}
       </div>
+      {pager(monthGrid)}
       <p className="cal-count">{count > 0 ? `${count} hari latihan di bulan ini` : 'Belum ada latihan di bulan ini.'}</p>
       <button type="button" className="btn btn--secondary" disabled={selected === today} onClick={() => onSelect(today)}>
         Hari ini

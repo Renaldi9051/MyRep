@@ -1277,40 +1277,30 @@ p {
   transition: transform 80ms ease-out;
 }
 
-/* Geser kiri/kanan untuk pindah bulan; scroll vertikal tetap milik browser */
+/* Geser kiri/kanan untuk pindah bulan: tiga halaman berjajar, halaman tengah terlihat.
+   Posisi track diatur dari useSwipePager; scroll vertikal tetap milik browser. */
 .cal-swipe {
   overflow: hidden;
   touch-action: pan-y;
 }
 
 .cal-swipe__track {
-  transition: transform 180ms ease-out;
+  display: flex;
+  transform: translate3d(-100%, 0, 0);
+  will-change: transform;
 }
 
-.cal-swipe__track.is-dragging {
-  transition: none;
+.cal-swipe__page {
+  flex: 0 0 100%;
+  min-width: 0;
 }
 
-.cal-swipe__track--next {
-  animation: cal-in-next 180ms ease-out;
+.cal-grid--labels {
+  margin-bottom: 4px;
 }
 
-.cal-swipe__track--prev {
-  animation: cal-in-prev 180ms ease-out;
-}
-
-@keyframes cal-in-next {
-  from {
-    transform: translateX(40px);
-    opacity: 0;
-  }
-}
-
-@keyframes cal-in-prev {
-  from {
-    transform: translateX(-40px);
-    opacity: 0;
-  }
+.cal-blank {
+  height: 48px;
 }
 
 .cal-grid {
