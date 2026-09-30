@@ -331,10 +331,31 @@ p {
 
 /* ---------- Penghitung (§5.4–5.7) ---------- */
 
+/* Lingkaran 188px di layar tinggi (DESIGN §5.4), mengecil sampai 112px di HP pendek supaya
+   tombol Simpan tetap terlihat. Ukuran dihitung dari tinggi layar dikurangi header, kontrol,
+   dan nav (~530px); /1.17 = lingkaran + cincin abu di sekelilingnya. Sengaja tanpa container
+   query: Safari iOS salah menata container-type: size dan lingkaran menutupi tombol. */
 .counter {
+  --ring: clamp(
+    112px,
+    calc((100vh - 530px - env(safe-area-inset-top, 0px) - var(--safe-b)) / 1.17),
+    188px
+  );
+  --ring-gap: calc(var(--ring) * 0.085);
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+/* svh = tinggi saat toolbar browser tampil, jadi lingkaran tidak kebesaran di Safari/Chrome */
+@supports (height: 100svh) {
+  .counter {
+    --ring: clamp(
+      112px,
+      calc((100svh - 530px - env(safe-area-inset-top, 0px) - var(--safe-b)) / 1.17),
+      188px
+    );
+  }
 }
 
 .counter__info {
@@ -344,23 +365,18 @@ p {
   text-align: center;
 }
 
-/* Lingkaran mengikuti ruang yang tersisa: 188px di layar tinggi (DESIGN §5.4),
-   mengecil sampai 112px supaya tombol Simpan tetap terlihat di HP pendek.
-   Dipusatkan lewat position absolute, bukan grid place-items: Safari iOS 16/17 salah
-   menaruh item grid di dalam container-type: size, lingkaran jatuh menutupi tombol. */
+/* Area ikut dalam alur flex biasa: tingginya minimal setinggi lingkaran + cincin,
+   jadi kontrol di bawahnya selalu terdorong, tidak pernah tertimpa. */
 .counter__ring-area {
-  position: relative;
-  flex: 1 1 0;
-  min-height: 150px;
-  container-type: size;
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--ring-gap) + 8px) 0;
 }
 
 .ring {
-  --ring: 188px;
-  --ring-gap: calc(var(--ring) * 0.085);
-  position: absolute;
-  inset: 0;
-  margin: auto;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -373,13 +389,6 @@ p {
   box-shadow:
     0 0 0 var(--ring-gap) var(--surface),
     0 0 0 calc(var(--ring-gap) + 1.5px) var(--surface-ring);
-}
-
-/* Browser tanpa container query (iOS < 16) tetap pakai 188px */
-@supports (container-type: size) {
-  .ring {
-    --ring: clamp(112px, calc(100cqh - 44px), 188px);
-  }
 }
 
 .ring__value {
@@ -405,11 +414,28 @@ p {
   gap: 14px;
 }
 
+/* 64 + 112 + 64 + 2 celah: di lebar 320px celah menyempit supaya tetap muat */
 .rep-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: clamp(12px, 6vw, 28px);
+}
+
+/* HP pendek atau Safari/Chrome dengan toolbar: kontrol sedikit lebih rapat */
+@media (max-height: 720px) {
+  .counter__controls {
+    gap: 10px;
+  }
+
+  .round--plus {
+    width: 96px;
+    height: 96px;
+  }
+
+  .round--plus:not(.round--start) {
+    font-size: 38px;
+  }
 }
 
 .stepper {
