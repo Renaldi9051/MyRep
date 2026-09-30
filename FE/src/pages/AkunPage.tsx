@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { ApiError } from '../api/client';
 import { AppHeader } from '../components/AppHeader';
+import { InstallSheet } from '../components/InstallSheet';
+import { useToast } from '../components/Toast';
 import { useAuth } from '../features/auth/useAuth';
 import { useSyncState } from '../features/sync/hooks';
 import { useSyncLabel } from '../features/sync/useSyncLabel';
+import { promptInstall, useInstall } from '../lib/install';
 import { getThemePref, setThemePref, type ThemePref } from '../lib/theme';
 
 const THEMES: { value: ThemePref; label: string }[] = [
@@ -12,7 +15,7 @@ const THEMES: { value: ThemePref; label: string }[] = [
   { value: 'dark', label: 'Gelap' },
 ];
 
-// Akun (DESIGN §6.6): info akun, pilihan tema, lalu Keluar (PRD F7.5)
+// Akun (DESIGN §6.6): info akun, pilihan tema, buat ikon di layar utama, lalu Keluar (PRD F7.5)
 export function AkunPage() {
   const { user, logout } = useAuth();
   const { status, lastSyncedAt } = useSyncState();
@@ -21,11 +24,23 @@ export function AkunPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemePref>(getThemePref);
+  const install = useInstall();
+  const [showSteps, setShowSteps] = useState(false);
+  const toast = useToast();
   const disconnected = status === 'offline' || status === 'unreachable';
 
   const chooseTheme = (pref: ThemePref) => {
     setThemePref(pref);
     setTheme(pref);
+  };
+
+  // Pakai dialog pasang bawaan browser kalau ada; kalau tidak, tampilkan langkah manual
+  const createIcon = async () => {
+    if (!install.canPrompt) {
+      setShowSteps(true);
+      return;
+    }
+    if (await promptInstall()) toast({ message: 'Ikon MyReps ditambahkan ke layar utama' });
   };
 
   const doLogout = async () => {
@@ -92,6 +107,16 @@ export function AkunPage() {
           </div>
         </fieldset>
 
+        {!install.standalone && (
+          <div className="field install-icon">
+            <span className="field__label">Ikon di layar utama</span>
+            <button type="button" className="btn btn--secondary" onClick={() => void createIcon()}>
+              Buat ikon
+            </button>
+            <p className="small">Buka MyReps langsung dari layar utama HP, tampil penuh seperti aplikasi.</p>
+          </div>
+        )}
+
         <div className="stack akun-actions">
           {error && (
             <p className="form-error" role="alert">
@@ -120,6 +145,7 @@ export function AkunPage() {
           )}
         </div>
       </main>
+      {showSteps && <InstallSheet ios={install.ios} onClose={() => setShowSteps(false)} />}
     </>
   );
 }
