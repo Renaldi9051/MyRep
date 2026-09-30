@@ -1,7 +1,8 @@
-import { Check, ChevronUp, Download, Pencil, Trash2 } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, ChevronUp, Download, Pencil, Trash2 } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { AppHeader } from '../components/AppHeader';
+import { CalendarSheet } from '../components/CalendarSheet';
 import { DateStrip } from '../components/DateStrip';
 import { DaySummaryCard } from '../components/DaySummaryCard';
 import { ExercisePickerSheet } from '../components/ExercisePickerSheet';
@@ -11,9 +12,9 @@ import type { LocalExercise, LocalSet } from '../db/types';
 import { changeExerciseInSession, deleteExerciseInSession } from '../features/workout/actions';
 import { downloadDayPdf } from '../features/workout/pdf';
 import { type DayGroup, useActiveDates, useDay, useDaySummary } from '../features/workout/queries';
-import { formatDayMonth, formatGroupSummary, formatSet } from '../lib/format';
+import { formatDayMonth, formatGroupSummary, formatMonthYear, formatSet } from '../lib/format';
 import { muscleLabel } from '../lib/labels';
-import { localDate } from '../lib/time';
+import { localDate, parseLocalDate } from '../lib/time';
 
 type Editing = { set: LocalSet; position: number; exercise: LocalExercise };
 
@@ -29,6 +30,7 @@ export function RiwayatPage() {
   const [editing, setEditing] = useState<Editing | null>(null);
   const [swapping, setSwapping] = useState<DayGroup | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const toast = useToast();
 
   const select = (date: string) => {
@@ -62,6 +64,7 @@ export function RiwayatPage() {
     }
   };
 
+  const selectedDate = parseLocalDate(selected);
   const groups = day?.groups ?? [];
   const muscles = [...new Set(groups.map((g) => g.exercise.muscle_group))].map(muscleLabel);
   const exerciseCount = new Set(groups.map((g) => g.exercise.id)).size;
@@ -70,6 +73,18 @@ export function RiwayatPage() {
     <>
       <AppHeader label="Riwayat" />
       <main className="screen__body">
+        <div className="month-bar">
+          <button
+            type="button"
+            className="month-btn"
+            aria-label={`Buka kalender, ${formatMonthYear(selectedDate.getFullYear(), selectedDate.getMonth())}`}
+            onClick={() => setCalendarOpen(true)}
+          >
+            <CalendarDays size={18} strokeWidth={1.75} />
+            {formatMonthYear(selectedDate.getFullYear(), selectedDate.getMonth())}
+            <ChevronDown size={16} strokeWidth={1.75} />
+          </button>
+        </div>
         <DateStrip selected={selected} onSelect={select} activeDates={activeDates ?? new Set()} />
 
         <div className="day-head">
@@ -170,6 +185,17 @@ export function RiwayatPage() {
         </ul>
       </main>
 
+      {calendarOpen && (
+        <CalendarSheet
+          selected={selected}
+          activeDates={activeDates ?? new Set()}
+          onSelect={(date) => {
+            select(date);
+            setCalendarOpen(false);
+          }}
+          onClose={() => setCalendarOpen(false)}
+        />
+      )}
       {editing && (
         <SetEditSheet
           set={editing.set}

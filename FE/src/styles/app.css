@@ -571,6 +571,40 @@ p {
   scrollbar-width: none;
 }
 
+/* Riwayat: tombol bulan di atas kotak tanggal, membuka kalender */
+.month-bar {
+  display: flex;
+  margin-top: 20px;
+}
+
+.month-bar + .dates {
+  margin-top: 12px;
+}
+
+.month-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  margin-left: -4px;
+  padding: 0 14px 0 4px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 600;
+  transition: transform 80ms ease-out;
+}
+
+.month-btn svg:last-child {
+  color: var(--ink-muted);
+}
+
+.month-btn:active {
+  transform: scale(0.96);
+}
+
 .dates::-webkit-scrollbar {
   display: none;
 }
