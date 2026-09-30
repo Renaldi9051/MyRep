@@ -2,6 +2,8 @@ import { useLayoutEffect, useRef } from 'react';
 import { addDays, dayShort, localDate, parseLocalDate } from '../lib/time';
 
 const DAYS_BACK = 62;
+// Hari sebelum tanggal terpilih yang ikut tampil kalau tanggal itu lebih lama dari DAYS_BACK
+const DAYS_BEFORE_SELECTED = 14;
 
 type Props = {
   selected: string;
@@ -13,14 +15,25 @@ type Props = {
 // Tambahan: geser ke kanan untuk hari yang lebih lama, titik kecil = ada latihan.
 export function DateStrip({ selected, onSelect, activeDates }: Props) {
   const today = localDate();
-  const days = Array.from({ length: DAYS_BACK + 2 }, (_, i) => addDays(today, i - DAYS_BACK));
+  const tomorrow = addDays(today, 1);
+  const recent = addDays(today, -DAYS_BACK);
+  const aroundSelected = addDays(selected, -DAYS_BEFORE_SELECTED);
+  const days: string[] = [];
+  for (let d = aroundSelected < recent ? aroundSelected : recent; d <= tomorrow; d = addDays(d, 1)) days.push(d);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Mulai dari ujung kanan: 3 hari lalu, hari ini, besok
+  // Kalau tanggal terpilih di luar layar (awal buka atau dipilih dari kalender),
+  // geser supaya ia di posisi ke-4 seperti hari ini
   useLayoutEffect(() => {
     const el = ref.current;
-    if (el) el.scrollLeft = el.scrollWidth;
-  }, []);
+    const box = el?.querySelector<HTMLElement>('.is-selected');
+    if (!el || !box) return;
+    const c = el.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    if (b.left >= c.left && b.right <= c.right) return;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+    el.scrollLeft += b.right - (c.right - b.width - gap);
+  }, [selected]);
 
   return (
     <div className="dates" ref={ref} role="group" aria-label="Pilih tanggal">
