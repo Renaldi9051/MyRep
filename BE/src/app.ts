@@ -5,8 +5,7 @@ import { auth } from './auth/index.js';
 import { health } from './routes/health.js';
 import { sync } from './routes/sync.js';
 
-// Aplikasi Hono tanpa server: dipakai server Node (index.ts, Docker/lokal)
-// dan serverless function Vercel (api/[[...route]].ts)
+// Aplikasi Hono tanpa server; dijalankan oleh server Node di index.ts (lokal dan Docker)
 export const app = new Hono().basePath('/api');
 
 // Better Auth: daftar, masuk (email/Google), keluar, cek sesi

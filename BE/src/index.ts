@@ -3,7 +3,7 @@ import { serve } from '@hono/node-server';
 import { app } from './app.js';
 import { pool } from './db/index.js';
 
-// Server Node untuk lokal (pnpm dev) dan Docker. Di Vercel yang dipakai api/[[...route]].ts.
+// Server Node untuk lokal (pnpm dev) dan Docker.
 const server = serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`BE jalan di http://localhost:${info.port}/api`);
 });

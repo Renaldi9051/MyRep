@@ -12,5 +12,5 @@
     "verbatimModuleSyntax": true,
     "outDir": "dist"
   },
-  "include": ["src", "api", "drizzle.config.ts"]
+  "include": ["src", "drizzle.config.ts"]
 }
