@@ -359,10 +359,21 @@ p {
 }
 
 .counter__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: 10px;
   margin-top: 16px;
   font-size: 14px;
   color: var(--ink-muted);
   text-align: center;
+}
+
+/* Tombol teks "Lihat gerakan" (§5.16). Margin negatif: area tap tetap 34px tanpa menambah
+   tinggi baris, supaya perhitungan ukuran lingkaran di .counter tidak berubah. */
+.counter__guide {
+  margin: -8px 0;
 }
 
 /* Area ikut dalam alur flex biasa: tingginya minimal setinggi lingkaran + cincin,

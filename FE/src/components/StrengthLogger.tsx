@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { LocalExercise, WorkoutSet } from '../db/types';
+import { GerakanSheet } from '../features/gerakan/GerakanSheet';
+import { hasGerakan } from '../features/gerakan/registry';
 import { addSet } from '../features/workout/actions';
 import { useDraft } from '../features/workout/draft';
 import { useExerciseSetCount, useLastSet, useTodaySets } from '../features/workout/queries';
@@ -43,6 +45,8 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
   // Nilai yang dibekukan saat tombol Simpan ditekan, menunggu konfirmasi
   const [confirming, setConfirming] = useState<SetValues | null>(null);
   const [editingExercise, setEditingExercise] = useState(false);
+  const [showGerakan, setShowGerakan] = useState(false);
+  const movementKey = exercise.movement_key;
   const setCount = useExerciseSetCount(exercise.id) ?? 0;
 
   useWakeLock(true);
@@ -76,9 +80,17 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
       />
 
       <main className="screen__body counter">
-        <p className="counter__info num">
-          Set {setNumber} · {lastSet ? `set lalu ${formatSet(lastSet)}` : 'set pertama'}
-        </p>
+        <div className="counter__info">
+          <p className="num">
+            Set {setNumber} · {lastSet ? `set lalu ${formatSet(lastSet)}` : 'set pertama'}
+          </p>
+          {/* DESIGN §5.16: hanya latihan yang punya animasi; latihan custom tidak */}
+          {hasGerakan(movementKey) && (
+            <button type="button" className="text-btn counter__guide" onClick={() => setShowGerakan(true)}>
+              Lihat gerakan
+            </button>
+          )}
+        </div>
 
         <div className="counter__ring-area">
           <div className="ring" aria-live="polite" aria-label={`${reps} rep`}>
@@ -147,6 +159,9 @@ export function StrengthLogger({ exercise }: { exercise: LocalExercise }) {
           onClose={() => setEditingExercise(false)}
           onDeleted={() => navigate('/latihan', { replace: true })}
         />
+      )}
+      {showGerakan && hasGerakan(movementKey) && (
+        <GerakanSheet exerciseName={exercise.name} movementKey={movementKey} onClose={() => setShowGerakan(false)} />
       )}
       {endSession.sheet}
     </>

@@ -18,6 +18,9 @@ export type Exercise = SyncFields & {
   type: ExerciseType;
   muscle_group: MuscleGroup;
   is_custom: boolean;
+  // Kunci animasi panduan gerakan (features/gerakan). Latihan custom selalu null;
+  // baris lama di Dexie yang belum tertarik ulang bisa belum punya kolom ini.
+  movement_key?: string | null;
 };
 
 export type WorkoutSession = SyncFields & {
