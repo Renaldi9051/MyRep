@@ -8,6 +8,13 @@
       "when": 1790645234841,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790753169570,
+      "tag": "0001_movement_key",
+      "breakpoints": true
     }
   ]
 }

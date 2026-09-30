@@ -2,16 +2,19 @@ import type { Exercise } from './schema.js';
 
 // Latihan bawaan (PRD F1.1). ID tetap supaya seed aman diulang dan sama di semua lingkungan.
 // Jangan ubah ID yang sudah ada; set di perangkat pengguna merujuk ID ini.
-export const builtInExercises: Pick<Exercise, 'id' | 'name' | 'type' | 'muscle_group'>[] = [
+// movement_key diisi untuk latihan yang punya animasi panduan gerakan di FE.
+export const builtInExercises: (Pick<Exercise, 'id' | 'name' | 'type' | 'muscle_group'> & {
+  movement_key?: string;
+})[] = [
   // dada
-  { id: 'c7e09c23-e3bf-4d90-9c9c-7a368d709f1b', name: 'Bench Press', type: 'beban', muscle_group: 'dada' },
+  { id: 'c7e09c23-e3bf-4d90-9c9c-7a368d709f1b', name: 'Bench Press', type: 'beban', muscle_group: 'dada', movement_key: 'bench-press' },
   { id: 'd073e1a7-0e17-4c2c-98cb-3c31f5b55dff', name: 'Incline Bench Press', type: 'beban', muscle_group: 'dada' },
   { id: '7c49dd2e-fd0a-4eac-9cea-4b929de15c7b', name: 'Decline Bench Press', type: 'beban', muscle_group: 'dada' },
   { id: '3c4acde3-6d77-4067-9074-a56935fc527e', name: 'Dumbbell Bench Press', type: 'beban', muscle_group: 'dada' },
   { id: '0411f487-f2ae-4e9b-8a2f-194a769769db', name: 'Incline Dumbbell Press', type: 'beban', muscle_group: 'dada' },
   { id: '0e309088-c9b8-4bd8-894c-c55825afecab', name: 'Dumbbell Fly', type: 'beban', muscle_group: 'dada' },
   { id: '8ff3f61a-4f99-4454-a318-2f4864adbcc9', name: 'Cable Crossover', type: 'beban', muscle_group: 'dada' },
-  { id: 'fbd75a08-3095-4800-95ee-7bfba58823a1', name: 'Pec Deck', type: 'beban', muscle_group: 'dada' },
+  { id: 'fbd75a08-3095-4800-95ee-7bfba58823a1', name: 'Pec Deck', type: 'beban', muscle_group: 'dada', movement_key: 'chest-fly' },
   { id: '02edf5a1-3d71-4457-8fa4-5c6e4f49ad95', name: 'Chest Press Machine', type: 'beban', muscle_group: 'dada' },
   { id: '256f72ee-2b71-40e2-8a8c-ea6ebd20083d', name: 'Push Up', type: 'beban', muscle_group: 'dada' },
   { id: 'a685c118-7a87-4db1-a28c-8eda49d3bcf2', name: 'Chest Dip', type: 'beban', muscle_group: 'dada' },
@@ -19,14 +22,14 @@ export const builtInExercises: Pick<Exercise, 'id' | 'name' | 'type' | 'muscle_g
   { id: '48bc3f05-4918-4fbe-98b9-94d0de3d1708', name: 'Deadlift', type: 'beban', muscle_group: 'punggung' },
   { id: 'f7548d23-622a-4287-838c-a7c38cb8e40e', name: 'Pull Up', type: 'beban', muscle_group: 'punggung' },
   { id: 'be346a16-2457-49f4-82f1-0d7b6c153dbe', name: 'Chin Up', type: 'beban', muscle_group: 'punggung' },
-  { id: 'f19697fe-fd97-4f3c-a8fa-1807a854538b', name: 'Lat Pulldown', type: 'beban', muscle_group: 'punggung' },
+  { id: 'f19697fe-fd97-4f3c-a8fa-1807a854538b', name: 'Lat Pulldown', type: 'beban', muscle_group: 'punggung', movement_key: 'lat-pulldown' },
   { id: '3d8d2290-64b1-4047-a7cc-8127a8b009a6', name: 'Barbell Row', type: 'beban', muscle_group: 'punggung' },
   { id: 'c2784e2c-f679-40a7-a2a2-4422fc764131', name: 'Dumbbell Row', type: 'beban', muscle_group: 'punggung' },
-  { id: 'd847a3bc-216f-4225-8162-deb3decacc18', name: 'Seated Cable Row', type: 'beban', muscle_group: 'punggung' },
+  { id: 'd847a3bc-216f-4225-8162-deb3decacc18', name: 'Seated Cable Row', type: 'beban', muscle_group: 'punggung', movement_key: 'seated-cable-row' },
   { id: '5a453b1c-95f1-4eb2-902e-b6c8b61fc34a', name: 'T-Bar Row', type: 'beban', muscle_group: 'punggung' },
   { id: '8460d57d-a51b-4eaf-94ed-e814b27ee8d4', name: 'Back Extension', type: 'beban', muscle_group: 'punggung' },
   // kaki
-  { id: '10826841-a1c7-4e87-b171-83f800c83c60', name: 'Squat', type: 'beban', muscle_group: 'kaki' },
+  { id: '10826841-a1c7-4e87-b171-83f800c83c60', name: 'Squat', type: 'beban', muscle_group: 'kaki', movement_key: 'squat' },
   { id: 'f7828ebf-e58a-4462-ab89-b5d01759e4ff', name: 'Front Squat', type: 'beban', muscle_group: 'kaki' },
   { id: '3c30156e-17b2-463b-9b8f-362447d1da73', name: 'Leg Press', type: 'beban', muscle_group: 'kaki' },
   { id: '2efcf596-304e-4727-802a-9871f9fba25a', name: 'Romanian Deadlift', type: 'beban', muscle_group: 'kaki' },

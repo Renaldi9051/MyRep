@@ -122,6 +122,8 @@ export const exercise = pgTable(
     type: exerciseType('type').notNull(),
     muscle_group: muscleGroup('muscle_group').notNull(),
     is_custom: boolean('is_custom').notNull().default(false),
+    // Kunci animasi panduan gerakan di FE (features/gerakan/registry.ts). null = tanpa panduan
+    movement_key: text('movement_key'),
     ...syncColumns(),
   },
   (t) => [

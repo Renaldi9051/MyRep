@@ -12,6 +12,7 @@ const written = await db
   .values(
     builtInExercises.map((e) => ({
       ...e,
+      movement_key: e.movement_key ?? null,
       user_id: null,
       is_custom: false,
       created_at: now,
@@ -25,6 +26,7 @@ const written = await db
       name: sql`excluded.name`,
       type: sql`excluded.type`,
       muscle_group: sql`excluded.muscle_group`,
+      movement_key: sql`excluded.movement_key`,
       updated_at: sql`excluded.updated_at`,
       deleted_at: null,
       sync_seq: sql`nextval('sync_seq')`,
@@ -33,6 +35,7 @@ const written = await db
       sql`${exercise.name} is distinct from excluded.name`,
       sql`${exercise.type} is distinct from excluded.type`,
       sql`${exercise.muscle_group} is distinct from excluded.muscle_group`,
+      sql`${exercise.movement_key} is distinct from excluded.movement_key`,
       sql`${exercise.deleted_at} is not null`,
     ),
   })
