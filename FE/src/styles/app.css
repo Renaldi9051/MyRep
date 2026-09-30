@@ -1520,6 +1520,14 @@ p {
   margin-top: 4px;
 }
 
+.theme-choice {
+  margin-top: 24px;
+}
+
+.theme-choice .choice {
+  height: 48px;
+}
+
 .akun-actions {
   margin-top: auto;
   padding-top: 24px;

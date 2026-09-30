@@ -4,8 +4,15 @@ import { AppHeader } from '../components/AppHeader';
 import { useAuth } from '../features/auth/useAuth';
 import { useSyncState } from '../features/sync/hooks';
 import { useSyncLabel } from '../features/sync/useSyncLabel';
+import { getThemePref, setThemePref, type ThemePref } from '../lib/theme';
 
-// Akun (DESIGN §6.6): info akun lalu Keluar (PRD F7.5)
+const THEMES: { value: ThemePref; label: string }[] = [
+  { value: 'auto', label: 'Otomatis' },
+  { value: 'light', label: 'Terang' },
+  { value: 'dark', label: 'Gelap' },
+];
+
+// Akun (DESIGN §6.6): info akun, pilihan tema, lalu Keluar (PRD F7.5)
 export function AkunPage() {
   const { user, logout } = useAuth();
   const { status, lastSyncedAt } = useSyncState();
@@ -13,7 +20,13 @@ export function AkunPage() {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [theme, setTheme] = useState<ThemePref>(getThemePref);
   const disconnected = status === 'offline' || status === 'unreachable';
+
+  const chooseTheme = (pref: ThemePref) => {
+    setThemePref(pref);
+    setTheme(pref);
+  };
 
   const doLogout = async () => {
     setBusy(true);
@@ -61,6 +74,23 @@ export function AkunPage() {
             </span>
           </div>
         </div>
+
+        <fieldset className="field theme-choice">
+          <legend className="field__label">Tema</legend>
+          <div className="choice-grid">
+            {THEMES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                className={theme === t.value ? 'choice is-active' : 'choice'}
+                aria-pressed={theme === t.value}
+                onClick={() => chooseTheme(t.value)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
 
         <div className="stack akun-actions">
           {error && (
