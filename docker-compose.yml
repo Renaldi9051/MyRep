@@ -1,5 +1,4 @@
-# Jalankan dari root repo:
-#   pnpm --filter @myrep/fe build
+# Jalankan dari root repo (panduan lengkap: docs/DEPLOY.md):
 #   docker compose up -d --build   (.env di root dibaca otomatis)
 services:
   be:
@@ -16,7 +15,10 @@ services:
     restart: unless-stopped
 
   caddy:
-    image: caddy:2-alpine
+    # Image Caddy berisi hasil build FE, lihat FE/Dockerfile
+    build:
+      context: .
+      dockerfile: FE/Dockerfile
     depends_on:
       - be
     environment:
@@ -26,8 +28,6 @@ services:
       - "443:443"
       - "443:443/udp"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./FE/dist:/srv:ro
       - caddy_data:/data
       - caddy_config:/config
     restart: unless-stopped
