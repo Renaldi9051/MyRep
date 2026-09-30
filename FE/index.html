@@ -15,6 +15,13 @@
       href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap"
     />
     <title>MyReps</title>
+    <script>
+      // Pasang tema pilihan (lib/theme.ts) sebelum render supaya layar tidak berkedip putih
+      try {
+        var t = localStorage.getItem('myrep:theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
