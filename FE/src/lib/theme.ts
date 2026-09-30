@@ -24,6 +24,8 @@ export function applyTheme(pref: ThemePref = getThemePref()) {
   const root = document.documentElement;
   if (pref === 'auto') root.removeAttribute('data-theme');
   else root.setAttribute('data-theme', pref);
+  // Selama layar pembuka tampil, status bar tetap gelap menyatu dengannya (lib/boot.ts memanggil ulang)
+  if (document.getElementById('boot')) return;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[resolved(pref)]);
 }
 

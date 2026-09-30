@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#FFFFFF" />
+    <meta name="theme-color" content="#111111" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -22,8 +22,35 @@
         if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
       } catch (e) {}
     </script>
+    <style>
+      /* Layar pembuka (lib/boot.ts): menyambung splash bawaan HP sampai app siap, lalu memudar */
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        background: #111111;
+        transition: opacity 320ms ease;
+      }
+      #boot svg {
+        width: 58px;
+        height: 80px;
+        transition: transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
+      #boot.is-done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #boot.is-done svg {
+        transform: scale(1.12);
+      }
+    </style>
   </head>
   <body>
+    <div id="boot" aria-hidden="true">
+      <svg viewBox="0 0 72 100"><path fill="#FFFFFF" fill-rule="evenodd" d="M22 0H44A28 28 0 0 1 44 56H22ZM22 18V38H42A10 10 0 0 0 42 18Z" /><path fill="#FFFFFF" d="M30 56H49L70 100H51Z" /><rect x="10" y="8" width="12" height="84" fill="#FFFFFF" /><rect x="1.5" y="1.5" width="29" height="17" rx="4" fill="#C8F169" stroke="#111111" stroke-width="3" /><rect x="1.5" y="81.5" width="29" height="17" rx="4" fill="#C8F169" stroke="#111111" stroke-width="3" /></svg>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

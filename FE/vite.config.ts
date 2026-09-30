@@ -16,8 +16,9 @@ export default defineConfig({
         lang: 'id',
         start_url: '/latihan',
         display: 'standalone',
-        theme_color: '#FFFFFF',
-        background_color: '#FFFFFF',
+        // Splash bawaan HP gelap dengan logo, disambung layar pembuka #boot di index.html
+        theme_color: '#111111',
+        background_color: '#111111',
         // PNG dibutuhkan Android untuk ikon layar utama; maskable dipotong sesuai bentuk ikon HP
         icons: [
           { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
