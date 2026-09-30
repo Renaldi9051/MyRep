@@ -1201,6 +1201,161 @@ p {
   font-weight: 600;
 }
 
+/* Kalender di Riwayat */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cal-nav__arrow {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--ink);
+  transition: transform 80ms ease-out;
+}
+
+.cal-nav__title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 48px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.cal-nav__title--btn {
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink);
+  transition: transform 80ms ease-out;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px 2px;
+}
+
+.cal-grid__label {
+  padding: 4px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-align: center;
+  color: var(--ink-muted);
+}
+
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 48px;
+  padding: 0;
+  border: var(--bw) solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-number);
+  font-size: 18px;
+  font-weight: 600;
+  transition: transform 80ms ease-out;
+}
+
+.cal-day.is-today {
+  border-color: var(--ink);
+}
+
+.cal-day.is-selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.cal-day.is-future {
+  color: var(--ink-faint);
+  opacity: 0.5;
+}
+
+.cal-count {
+  margin: 14px 0 16px;
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
+.cal-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.cal-month {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 64px;
+  padding: 0;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--ink);
+  transition: transform 80ms ease-out;
+}
+
+.cal-month__name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cal-month__count {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.cal-month.is-selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.cal-month.is-selected .cal-month__count {
+  color: var(--on-ink);
+}
+
+.cal-month.is-future {
+  border-style: dashed;
+  border-color: var(--line-dashed);
+  color: var(--ink-faint);
+}
+
+:is(.cal-nav__arrow, .cal-nav__title--btn, .cal-day, .cal-month):active {
+  transform: scale(0.96);
+}
+
+:is(.cal-nav__arrow, .cal-day, .cal-month):disabled {
+  pointer-events: none;
+}
+
+.cal-nav__arrow:disabled {
+  opacity: 0.4;
+}
+
 /* Konfirmasi simpan set */
 .confirm__value {
   margin: 0;
