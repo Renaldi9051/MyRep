@@ -10,6 +10,7 @@ const longDate = new Intl.DateTimeFormat('id-ID', {
   month: 'long',
   year: 'numeric',
 });
+const monthYear = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' });
 
 // 42.5 -> "42,5"
 export const formatNumber = (n: number): string => number.format(n);
@@ -36,6 +37,9 @@ export const formatDayMonth = (date: string): string => dayMonth.format(parseLoc
 
 // "Rabu, 30 September 2026"
 export const formatLongDate = (date: string): string => longDate.format(parseLocalDate(date));
+
+// "September 2026" (month mulai 0 seperti Date)
+export const formatMonthYear = (year: number, month: number): string => monthYear.format(new Date(year, month, 1));
 
 export function formatDateLabel(date: string): string {
   const today = new Date();
