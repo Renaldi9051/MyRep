@@ -28,10 +28,10 @@ Isi `.env` di VPS:
 
 | Variabel | Nilai |
 | --- | --- |
-| `DATABASE_URL` | Connection string Neon **branch production**, sama dengan yang dipakai di Vercel |
-| `BETTER_AUTH_SECRET` | Sama dengan yang dipakai di Vercel (minimal 32 karakter) |
+| `DATABASE_URL` | Connection string Neon **branch production** |
+| `BETTER_AUTH_SECRET` | Buat dengan `openssl rand -base64 32` (minimal 32 karakter) |
 | `BETTER_AUTH_URL` | Biarkan saja; di Docker otomatis diganti `https://DOMAIN` |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Sama dengan yang dipakai di Vercel (kosongkan kalau tidak pakai login Google) |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Dari Google Cloud Console (kosongkan kalau tidak pakai login Google) |
 | `DOMAIN` | Domain VPS tanpa `https://`, contoh `namaapp.duckdns.org` |
 
 Kalau memakai login Google, tambahkan di Google Cloud Console (Credentials → OAuth client):
@@ -57,13 +57,6 @@ git pull
 docker compose up -d --build
 docker image prune -f           # hapus image lama supaya disk tidak penuh
 ```
-
-## Pindah dari Vercel
-
-1. Pastikan VPS sudah jalan dan bisa login di `https://DOMAIN`.
-2. Di setiap HP, buka app lama (domain Vercel) sekali saat online supaya catatan yang belum tersinkron terkirim ke server. Data lokal (IndexedDB) terikat ke domain, jadi tidak ikut pindah ke domain baru.
-3. Buka `https://DOMAIN`, login, lalu pasang ulang PWA (Add to Home Screen). Semua data akan ditarik dari server.
-4. Matikan project Vercel (FE dan BE), atau putuskan koneksi Git-nya supaya push berikutnya tidak memicu build di Vercel.
 
 ## Perintah berguna
 
